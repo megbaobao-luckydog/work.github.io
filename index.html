@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Demo</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#111;
+    color:white;
+    font-family:Arial,Helvetica,sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.container{
+    width:90%;
+    max-width:1000px;
+    text-align:center;
+}
+
+h1{
+    margin-bottom:20px;
+    font-size:40px;
+}
+
+p{
+    color:#bbb;
+    margin-bottom:30px;
+}
+
+video{
+    width:100%;
+    border-radius:12px;
+    box-shadow:0 15px 40px rgba(0,0,0,.4);
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Shipping Prototype</h1>
+
+<p>Demo Video</p>
+
+<video controls preload="metadata">
+    <source src="shipping-demo.mp4" type="video/mp4">
+    Your browser does not support HTML5 video.
+</video>
+
+</div>
+
+</body>
+</html>
