@@ -31,7 +31,15 @@
 | Send to OMS | ✅ | ✅ |
 | Download Grouped PDF | ✅ | ✅ |
 
----
+
+
+## 可交互原型
+
+👉 [点击查看 Shipping Label Manager 可交互原型](https://megbaobao-luckydog.github.io/work.github.io/ShippingLabelManager_prd.html)
+
+
+
+
 
 ## 3. 产品框架
 ### 3.1 端到端时序图
