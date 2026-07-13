@@ -1,0 +1,12 @@
+pandas
+pdfplumber
+PyMuPDF
+fastapi
+uvicorn[standard]
+python-multipart
+pytesseract
+Pillow
+requests
+python-dotenv
+gspread
+google-auth

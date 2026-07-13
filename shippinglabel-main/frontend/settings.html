@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipping Label Manager — Settings</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f0; color: #333; display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar { width: 200px; background: #fff; border-right: 1px solid #e5e5e0; padding: 24px 16px; display: flex; flex-direction: column; }
+    .logo { display: flex; align-items: center; gap: 8px; margin-bottom: 32px; }
+    .logo-icon { width: 36px; height: 36px; background: #e8a030; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 12px; }
+    .logo-text { font-weight: 700; font-size: 15px; }
+    .nav-label { font-size: 11px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; text-decoration: none; color: #333; margin-bottom: 2px; }
+    .nav-item:hover { background: #f5f5f0; }
+    .nav-item.active { background: #e8a030; color: #fff; }
+    .nav-item svg { width: 18px; height: 18px; }
+    /* ── Main ── */
+    .main { flex: 1; padding: 40px; overflow-y: auto; }
+    .main h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .main .subtitle { color: #999; font-size: 14px; margin-bottom: 24px; }
+
+    /* ── Platform Tabs ── */
+    .platform-tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid #e8e8e8; }
+    .platform-tab { padding: 10px 24px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; background: none; color: #999; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .platform-tab:hover { color: #666; }
+    .platform-tab.active { color: #e8a030; border-bottom-color: #e8a030; }
+
+    /* ── Card Grid ── */
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .card { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 24px; }
+    .card.full-width { grid-column: 1 / -1; }
+    .card-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+    .card-title svg { width: 18px; height: 18px; color: #e8a030; }
+
+    /* ── Form ── */
+    label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px; }
+    .hint { font-size: 11px; color: #bbb; margin-top: 4px; }
+    input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafaf8; outline: none; }
+    input[type="text"]:focus { border-color: #e8a030; }
+    select { padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafaf8; outline: none; width: 100%; }
+    select:focus { border-color: #e8a030; }
+
+    /* ── Courier Table ── */
+    .courier-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .courier-table th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600; color: #999; border-bottom: 2px solid #e8e8e8; }
+    .courier-table td { padding: 6px 6px; border-bottom: 1px solid #f0f0f0; }
+    .courier-table td input { font-size: 13px; padding: 7px 10px; }
+    .courier-table td select { font-size: 13px; padding: 7px 10px; }
+    .courier-table tr:hover td { background: #fafaf8; }
+
+    .btn-delete { width: 32px; height: 34px; border: 1px solid #eee; border-radius: 8px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 14px; }
+    .btn-delete:hover { color: #e55; border-color: #e55; }
+
+    .btn-add { display: block; width: 100%; padding: 10px; border: 1px dashed #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 13px; color: #999; margin-top: 8px; }
+    .btn-add:hover { border-color: #e8a030; color: #e8a030; }
+
+    /* ── Drag Handle ── */
+    .drag-handle { cursor: grab; color: #ccc; font-size: 16px; user-select: none; padding: 0 4px; }
+    .drag-handle:hover { color: #999; }
+    .drag-handle:active { cursor: grabbing; }
+    tr.dragging { opacity: 0.4; background: #fef9ef; }
+    tr.drag-over-top td { border-top: 2px solid #e8a030; }
+    tr.drag-over-bottom td { border-bottom: 2px solid #e8a030; }
+
+    /* ── Save Button ── */
+    .save-area { display: flex; justify-content: flex-end; }
+    .btn-save { padding: 12px 28px; background: #e8a030; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-save:hover { background: #d49028; }
+    .btn-save:active { transform: scale(0.98); }
+    .btn-save.saved { background: #5a9a5a; }
+
+    /* ── Platform Section (show/hide) ── */
+    .platform-section { display: none; }
+    .platform-section.active { display: block; }
+
+    /* ── Toast ── */
+    .toast { position: fixed; top: 24px; right: 24px; background: #333; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">SL</div>
+    <span class="logo-text">Shipping Label Manager</span>
+  </div>
+  <div class="nav-label">MAIN</div>
+  <a class="nav-item" href="/static/dashboard.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </a>
+  <a class="nav-item active" href="/static/settings.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Settings
+  </a>
+  <a class="nav-item" href="/static/threads.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Threads
+  </a>
+  <a class="nav-item" href="/static/logs.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Logs
+  </a>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <h1>Settings</h1>
+  <p class="subtitle">Manage courier mappings, hierarchy, and output config per platform</p>
+
+  <!-- Platform Tabs -->
+  <div class="platform-tabs">
+    <button class="platform-tab active" onclick="switchPlatform('tw')">Temple & Webster</button>
+    <button class="platform-tab" onclick="switchPlatform('amazon')">Amazon</button>
+  </div>
+
+  <!-- TW Section -->
+  <div class="platform-section active" id="section-tw">
+    <div class="card full-width" style="margin-bottom: 20px;">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Courier Configuration — TW
+      </div>
+      <table class="courier-table" id="table-tw">
+        <thead>
+          <tr>
+            <th style="width:30px"></th>
+            <th style="width:24%">Label Keyword</th>
+            <th style="width:20%">Courier Name</th>
+            <th style="width:10%">Code</th>
+            <th style="width:20%">Parent</th>
+            <th style="width:8%">Pin</th>
+            <th style="width:40px"></th>
+          </tr>
+        </thead>
+        <tbody id="courierRows-tw"></tbody>
+      </table>
+      <button class="btn-add" onclick="addCourierRow('tw','','','','')">+ Add Courier</button>
+    </div>
+    <div class="card full-width" style="margin-bottom: 20px;">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 12h13"/><path d="M3 18h18"/><line x1="3" y1="3" x2="21" y2="21"/></svg>
+        PO Prefix Exclude — TW
+      </div>
+      <label>Patterns (one per line)</label>
+      <textarea id="po_prefix_exclude_tw" rows="4" style="width:100%;font-family:monospace;resize:vertical;"></textarea>
+      <p class="hint">Words starting with <code>TW</code> + any of these prefixes will be ignored as PO numbers (e.g. carrier tracking like <code>TWMF00000687</code>).</p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          Extract CSV (Step 1)
+        </div>
+        <label>CSV Filename</label>
+        <input type="text" id="extract_output_filename" style="margin-bottom: 12px;" />
+        <label>Timestamp Format</label>
+        <input type="text" id="extract_timestamp_format" />
+        <p class="hint">Use {ts} as timestamp placeholder, e.g. extract_{ts}.csv</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M18 9l-6 6-6-6"/><path d="M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/></svg>
+          Download Output (Step 4)
+        </div>
+        <label>Merged CSV Filename</label>
+        <input type="text" id="merge_output_filename" style="margin-bottom: 12px;" />
+        <label>Grouped PDF Filename</label>
+        <input type="text" id="pdf_output_filename" style="margin-bottom: 12px;" />
+        <label>Timestamp Format</label>
+        <input type="text" id="merge_timestamp_format" />
+        <p class="hint">Use {ts} as timestamp placeholder. Format: %Y%m%d%H%M%S</p>
+      </div>
+    </div>
+    <div class="save-area">
+      <button class="btn-save" onclick="saveConfig('tw')">Save TW Config</button>
+    </div>
+  </div>
+
+  <!-- Amazon Section -->
+  <div class="platform-section" id="section-amazon">
+    <div class="card full-width" style="margin-bottom: 20px;">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Courier Configuration — Amazon
+      </div>
+      <table class="courier-table" id="table-amazon">
+        <thead>
+          <tr>
+            <th style="width:30px"></th>
+            <th style="width:24%">Label Keyword</th>
+            <th style="width:20%">Courier Name</th>
+            <th style="width:10%">Code</th>
+            <th style="width:20%">Parent</th>
+            <th style="width:8%">Pin</th>
+            <th style="width:40px"></th>
+          </tr>
+        </thead>
+        <tbody id="courierRows-amazon"></tbody>
+      </table>
+      <button class="btn-add" onclick="addCourierRow('amazon','','','','')">+ Add Courier</button>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          Extract CSV (Step 1)
+        </div>
+        <label>CSV Filename</label>
+        <input type="text" id="extract_output_filename_amazon" style="margin-bottom: 12px;" />
+        <label>Timestamp Format</label>
+        <input type="text" id="extract_timestamp_format_amazon" />
+        <p class="hint">Use {ts} as timestamp placeholder, e.g. extract_{ts}.csv</p>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M18 9l-6 6-6-6"/><path d="M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/></svg>
+          Download Output (Step 4)
+        </div>
+        <label>Merged CSV Filename</label>
+        <input type="text" id="merge_output_filename_amazon" style="margin-bottom: 12px;" />
+        <label>Grouped PDF Filename</label>
+        <input type="text" id="pdf_output_filename_amazon" style="margin-bottom: 12px;" />
+        <label>Timestamp Format</label>
+        <input type="text" id="merge_timestamp_format_amazon" />
+        <p class="hint">Use {ts} as timestamp placeholder. Format: %Y%m%d%H%M%S</p>
+      </div>
+    </div>
+    <div class="save-area">
+      <button class="btn-save" onclick="saveConfig('amazon')">Save Amazon Config</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api/settings';
+let fullConfig = {};
+let currentPlatform = 'tw';
+
+function esc(s) { return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function showToast(msg, ms = 2000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+// ── Platform Switch ──
+function switchPlatform(p) {
+  currentPlatform = p;
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.platform-tab[onclick="switchPlatform('${p}')"]`).classList.add('active');
+  document.querySelectorAll('.platform-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`section-${p}`).classList.add('active');
+}
+
+// ── Config → table rows data ──
+function configToRows(platform) {
+  const platformCfg = platform === 'amazon' ? (fullConfig.amazon || {}) : (fullConfig.tw || {});
+  const courierMap = platformCfg.courier_map || {};
+  const hierarchy = platformCfg.courier_hierarchy || {};
+  const sortOrder = platformCfg.courier_sort_order || null;
+  const courierPin = platformCfg.courier_pin || {};
+  const topSet = new Set(courierPin.top || []);
+  const bottomSet = new Set(courierPin.bottom || []);
+
+  // 构建 name → { keywords, code, parent, pin }
+  const nameToKeywords = {};
+  for (const [kw, name] of Object.entries(courierMap)) {
+    if (!nameToKeywords[name]) nameToKeywords[name] = [];
+    nameToKeywords[name].push(kw);
+  }
+  const nameToInfo = {};
+  for (const [parentName, info] of Object.entries(hierarchy)) {
+    const pin = topSet.has(parentName) ? 'top' : bottomSet.has(parentName) ? 'bottom' : '';
+    nameToInfo[parentName] = { code: info.code || '', parent: '', pin };
+    for (const [childName, childInfo] of Object.entries(info.children || {})) {
+      const cpin = topSet.has(childName) ? 'top' : bottomSet.has(childName) ? 'bottom' : '';
+      nameToInfo[childName] = { code: childInfo.code || '', parent: parentName, pin: cpin };
+    }
+  }
+
+  // 按 courier_sort_order 排序，没有则按 hierarchy 原始顺序
+  let orderedNames;
+  if (sortOrder) {
+    orderedNames = [...sortOrder];
+    // 补上 sortOrder 里没有的 name
+    for (const name of Object.keys(nameToInfo)) {
+      if (!orderedNames.includes(name)) orderedNames.push(name);
+    }
+  } else {
+    orderedNames = Object.keys(nameToInfo);
+  }
+
+  const rows = [];
+  const added = new Set();
+  for (const name of orderedNames) {
+    if (added.has(name)) continue;
+    const info = nameToInfo[name];
+    if (!info) continue;
+    const keywords = nameToKeywords[name] || [''];
+    keywords.forEach(kw => rows.push({ keyword: kw, name, code: info.code, parent: info.parent, pin: info.pin || '' }));
+    added.add(name);
+  }
+  return rows;
+}
+
+// ── Get all courier names from a platform's table ──
+function getAllCourierNames(platform) {
+  const names = new Set();
+  document.querySelectorAll(`#courierRows-${platform} tr`).forEach(tr => {
+    const v = tr.querySelector('.courier-name').value.trim();
+    if (v) names.add(v);
+  });
+  return [...names];
+}
+
+// ── Refresh parent dropdowns for a platform ──
+function refreshParentDropdowns(platform) {
+  const names = getAllCourierNames(platform);
+  document.querySelectorAll(`#courierRows-${platform} .courier-parent`).forEach(sel => {
+    const current = sel.value;
+    const ownName = sel.closest('tr').querySelector('.courier-name').value.trim();
+    sel.innerHTML = '<option value="">—</option>';
+    names.forEach(n => {
+      if (n !== ownName) {
+        const opt = document.createElement('option');
+        opt.value = n; opt.textContent = n;
+        if (n === current) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    });
+  });
+}
+
+// ── Add a row ──
+function addCourierRow(platform, keyword, name, code, parent, pin) {
+  const tbody = document.getElementById(`courierRows-${platform}`);
+  const tr = document.createElement('tr');
+  tr.draggable = true;
+  tr.dataset.platform = platform;
+  tr.innerHTML = `
+    <td><span class="drag-handle">&#x2630;</span></td>
+    <td><input type="text" class="courier-keyword" value="${esc(keyword)}" placeholder="Label Keyword" /></td>
+    <td><input type="text" class="courier-name" value="${esc(name)}" placeholder="Courier Name" oninput="refreshParentDropdowns('${platform}')" /></td>
+    <td><input type="text" class="courier-code" value="${esc(code)}" placeholder="Code" style="width:80px" /></td>
+    <td><select class="courier-parent" onchange="onParentChange(this, '${platform}')"><option value="">—</option></select></td>
+    <td><select class="courier-pin" style="width:60px"><option value="">—</option><option value="top"${pin==='top'?' selected':''}>Top</option><option value="bottom"${pin==='bottom'?' selected':''}>Bottom</option></select></td>
+    <td><button class="btn-delete" onclick="deleteCourierRow(this, '${platform}')">x</button></td>
+  `;
+  tr.addEventListener('dragstart', handleDragStart);
+  tr.addEventListener('dragend', handleDragEnd);
+  tbody.appendChild(tr);
+  refreshParentDropdowns(platform);
+  if (parent) tr.querySelector('.courier-parent').value = parent;
+}
+
+// ── Drag & Drop ──
+let dragSrcRow = null;
+
+function handleDragStart(e) {
+  dragSrcRow = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragEnd() {
+  this.classList.remove('dragging');
+  document.querySelectorAll('tr').forEach(tr => tr.classList.remove('drag-over-top', 'drag-over-bottom'));
+}
+
+// Table-level drag for each courier table
+document.querySelectorAll('.courier-table').forEach(table => {
+  table.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!dragSrcRow) return;
+    document.querySelectorAll('tr').forEach(tr => tr.classList.remove('drag-over-top', 'drag-over-bottom'));
+
+    const platform = dragSrcRow.dataset.platform;
+    const tbody = document.getElementById(`courierRows-${platform}`);
+    if (!this.contains(tbody)) return;
+    const rows = [...tbody.querySelectorAll('tr')];
+    if (!rows.length) return;
+
+    let target = null, insertAfter = false;
+    for (const row of rows) {
+      if (row === dragSrcRow) continue;
+      const rect = row.getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) { target = row; insertAfter = false; break; }
+      target = row; insertAfter = true;
+    }
+    if (target) target.classList.add(insertAfter ? 'drag-over-bottom' : 'drag-over-top');
+  });
+
+  table.addEventListener('drop', function(e) {
+    e.preventDefault();
+    if (!dragSrcRow) return;
+    const platform = dragSrcRow.dataset.platform;
+    const tbody = document.getElementById(`courierRows-${platform}`);
+    if (!this.contains(tbody)) return;
+    const rows = [...tbody.querySelectorAll('tr')];
+
+    let target = null, insertAfter = false;
+    for (const row of rows) {
+      if (row === dragSrcRow) continue;
+      const rect = row.getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) { target = row; insertAfter = false; break; }
+      target = row; insertAfter = true;
+    }
+    if (target && target !== dragSrcRow) {
+      const srcParent = dragSrcRow.querySelector('.courier-parent')?.value || '';
+      const tgtParent = target.querySelector('.courier-parent')?.value || '';
+      const tgtName = target.querySelector('.courier-name')?.value || '';
+      const srcName = dragSrcRow.querySelector('.courier-name')?.value || '';
+      // 先执行移动
+      if (insertAfter) tbody.insertBefore(dragSrcRow, target.nextSibling);
+      else tbody.insertBefore(dragSrcRow, target);
+
+      // 自动修正：确保同 parent 的行聚在一起
+      _regroupRows(platform);
+    }
+    document.querySelectorAll('tr').forEach(tr => tr.classList.remove('drag-over-top', 'drag-over-bottom'));
+  });
+});
+
+// ── Auto regroup: 同 parent 的行聚在一起 ──
+function _regroupRows(platform) {
+  const tbody = document.getElementById(`courierRows-${platform}`);
+  const rows = [...tbody.querySelectorAll('tr')];
+
+  // 收集每行的 name 和 parent
+  const rowInfo = rows.map(tr => ({
+    tr,
+    name: tr.querySelector('.courier-name')?.value || '',
+    parent: tr.querySelector('.courier-parent')?.value || '',
+  }));
+
+  // 按组分：找出所有组，保持组的出现顺序（第一个成员的位置）
+  const groups = new Map(); // parentKey → [rowInfo]
+  for (const ri of rowInfo) {
+    const key = ri.parent || ri.name; // 有 parent 用 parent，没有用自己
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(ri);
+  }
+
+  // 按组重新排列行：组内保持拖拽后的相对顺序
+  const sorted = [];
+  for (const [, members] of groups) {
+    sorted.push(...members);
+  }
+
+  // 重新挂载 DOM
+  sorted.forEach(ri => tbody.appendChild(ri.tr));
+}
+
+// ── Parent change → inherit parent code ──
+function onParentChange(sel, platform) {
+  const tr = sel.closest('tr');
+  const codeInput = tr.querySelector('.courier-code');
+  const parentName = sel.value;
+  if (parentName) {
+    // 找到 parent 的 code
+    document.querySelectorAll(`#courierRows-${platform} tr`).forEach(otherTr => {
+      const name = otherTr.querySelector('.courier-name').value.trim();
+      if (name === parentName) {
+        codeInput.value = otherTr.querySelector('.courier-code').value.trim();
+        codeInput.disabled = true;
+        codeInput.style.color = '#999';
+      }
+    });
+  } else {
+    codeInput.disabled = false;
+    codeInput.style.color = '';
+  }
+}
+
+// ── Apply parent code inheritance to all rows ──
+function applyParentCodes(platform) {
+  document.querySelectorAll(`#courierRows-${platform} tr`).forEach(tr => {
+    const parentSel = tr.querySelector('.courier-parent');
+    if (parentSel.value) onParentChange(parentSel, platform);
+  });
+}
+
+// ── Delete row ──
+function deleteCourierRow(btn, platform) {
+  const tr = btn.closest('tr');
+  const name = tr.querySelector('.courier-name').value.trim();
+  if (name) {
+    const children = [];
+    document.querySelectorAll(`#courierRows-${platform} tr`).forEach(otherTr => {
+      if (otherTr === tr) return;
+      const parentSel = otherTr.querySelector('.courier-parent');
+      if (parentSel && parentSel.value === name) {
+        children.push(otherTr.querySelector('.courier-name').value.trim() || '(unnamed)');
+      }
+    });
+    if (children.length > 0) { alert(`Cannot delete "${name}": used as parent by [${children.join(', ')}]`); return; }
+  }
+  tr.remove();
+  refreshParentDropdowns(platform);
+}
+
+// ── Render both tables ──
+function renderCourierTable(platform) {
+  document.getElementById(`courierRows-${platform}`).innerHTML = '';
+  const rows = configToRows(platform);
+  // 先添加所有行（不设 parent），确保所有 name 都在下拉选项里
+  rows.forEach(r => addCourierRow(platform, r.keyword, r.name, r.code, '', r.pin || ''));
+  // 再统一设置 parent 值
+  refreshParentDropdowns(platform);
+  const trs = document.querySelectorAll(`#courierRows-${platform} tr`);
+  let trIdx = 0;
+  rows.forEach(r => {
+    if (r.parent && trs[trIdx]) {
+      trs[trIdx].querySelector('.courier-parent').value = r.parent;
+    }
+    trIdx++;
+  });
+  applyParentCodes(platform);
+}
+
+// ── Collect config from a platform's table ──
+function collectCourierConfig(platform) {
+  const courierMap = {};
+  const hierarchy = {};
+  const rowData = [];
+
+  document.querySelectorAll(`#courierRows-${platform} tr`).forEach(tr => {
+    const keyword = tr.querySelector('.courier-keyword').value.trim();
+    const name = tr.querySelector('.courier-name').value.trim();
+    const code = tr.querySelector('.courier-code').value.trim();
+    const parent = tr.querySelector('.courier-parent').value.trim();
+    const pin = tr.querySelector('.courier-pin')?.value || '';
+    if (!name) return;
+    if (keyword) courierMap[keyword] = name;
+    rowData.push({ name, code, parent, pin });
+  });
+
+  rowData.forEach(r => {
+    if (!r.parent) {
+      if (!hierarchy[r.name]) hierarchy[r.name] = { code: r.code };
+      else hierarchy[r.name].code = r.code;
+    }
+  });
+  rowData.forEach(r => {
+    if (r.parent) {
+      if (!hierarchy[r.parent]) hierarchy[r.parent] = { code: '' };
+      if (!hierarchy[r.parent].children) hierarchy[r.parent].children = {};
+      hierarchy[r.parent].children[r.name] = { code: r.code };
+    }
+  });
+  // 按表格行顺序记录排序（去重）
+  const sortOrder = [];
+  const seen = new Set();
+  rowData.forEach(r => {
+    if (!seen.has(r.name)) { sortOrder.push(r.name); seen.add(r.name); }
+  });
+  // 收集 pin（置顶/置底）
+  const courierPin = { top: [], bottom: [] };
+  const pinSeen = new Set();
+  rowData.forEach(r => {
+    if (r.pin && !pinSeen.has(r.name)) {
+      courierPin[r.pin].push(r.name);
+      pinSeen.add(r.name);
+    }
+  });
+  return { courierMap, hierarchy, sortOrder, courierPin };
+}
+
+// ── Load Config ──
+async function loadConfig() {
+  try {
+    const res = await fetch(API);
+    fullConfig = await res.json();
+    renderCourierTable('tw');
+    renderCourierTable('amazon');
+
+    // TW PO Prefix Exclude
+    const twExclude = (fullConfig.tw || {}).po_prefix_exclude || [];
+    document.getElementById('po_prefix_exclude_tw').value = twExclude.join('\n');
+
+    // Shared output config (shown in TW tab)
+    const shared = fullConfig.shared || {};
+    const extOut = shared.extract_output || {};
+    document.getElementById('extract_output_filename').value = extOut.output_filename || '';
+    document.getElementById('extract_timestamp_format').value = extOut.timestamp_format || '';
+    const mergeOut = shared.merge_output || {};
+    document.getElementById('merge_output_filename').value = mergeOut.output_filename || '';
+    document.getElementById('pdf_output_filename').value = mergeOut.pdf_output_filename || '';
+    document.getElementById('merge_timestamp_format').value = mergeOut.timestamp_format || '';
+
+    // Amazon output config (copy from shared as default)
+    document.getElementById('extract_output_filename_amazon').value = extOut.output_filename || '';
+    document.getElementById('extract_timestamp_format_amazon').value = extOut.timestamp_format || '';
+    document.getElementById('merge_output_filename_amazon').value = mergeOut.output_filename || '';
+    document.getElementById('pdf_output_filename_amazon').value = mergeOut.pdf_output_filename || '';
+    document.getElementById('merge_timestamp_format_amazon').value = mergeOut.timestamp_format || '';
+  } catch (e) {
+    showToast('Failed to load config: ' + e.message, 3000);
+  }
+}
+
+// ── Save Config (per platform) ──
+async function saveConfig(platform) {
+  const { courierMap, hierarchy, sortOrder, courierPin } = collectCourierConfig(platform);
+  const cfg = Object.assign({}, fullConfig);
+
+  if (platform === 'amazon') {
+    if (!cfg.amazon) cfg.amazon = {};
+    cfg.amazon.courier_map = courierMap;
+    cfg.amazon.courier_hierarchy = hierarchy;
+    cfg.amazon.courier_sort_order = sortOrder;
+    cfg.amazon.courier_pin = courierPin;
+  } else {
+    if (!cfg.tw) cfg.tw = {};
+    cfg.tw.courier_map = courierMap;
+    cfg.tw.courier_hierarchy = hierarchy;
+    cfg.tw.courier_sort_order = sortOrder;
+    cfg.tw.courier_pin = courierPin;
+    cfg.tw.po_prefix_exclude = document.getElementById('po_prefix_exclude_tw').value
+      .split('\n').map(s => s.trim()).filter(Boolean);
+  }
+
+  // Output configs (shared — save from whichever tab)
+  if (!cfg.shared) cfg.shared = {};
+  if (platform === 'amazon') {
+    cfg.shared.extract_output = Object.assign({}, (fullConfig.shared || {}).extract_output, {
+      output_filename: document.getElementById('extract_output_filename_amazon').value.trim(),
+      timestamp_format: document.getElementById('extract_timestamp_format_amazon').value.trim(),
+    });
+    cfg.shared.merge_output = Object.assign({}, (fullConfig.shared || {}).merge_output, {
+      output_filename: document.getElementById('merge_output_filename_amazon').value.trim(),
+      pdf_output_filename: document.getElementById('pdf_output_filename_amazon').value.trim(),
+      timestamp_format: document.getElementById('merge_timestamp_format_amazon').value.trim(),
+    });
+  } else {
+    cfg.shared.extract_output = Object.assign({}, (fullConfig.shared || {}).extract_output, {
+      output_filename: document.getElementById('extract_output_filename').value.trim(),
+      timestamp_format: document.getElementById('extract_timestamp_format').value.trim(),
+    });
+    cfg.shared.merge_output = Object.assign({}, (fullConfig.shared || {}).merge_output, {
+      output_filename: document.getElementById('merge_output_filename').value.trim(),
+      pdf_output_filename: document.getElementById('pdf_output_filename').value.trim(),
+      timestamp_format: document.getElementById('merge_timestamp_format').value.trim(),
+    });
+  }
+
+  try {
+    const res = await fetch(API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cfg),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    fullConfig = cfg;
+    showToast(`${platform === 'amazon' ? 'Amazon' : 'TW'} config saved`);
+    try { new BroadcastChannel('pdf2csv').postMessage('config_updated'); } catch {}
+  } catch (e) {
+    showToast('Failed to save: ' + e.message, 3000);
+  }
+}
+
+// ── Init ──
+loadConfig();
+</script>
+
+</body>
+</html>

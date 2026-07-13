@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipping Label Manager</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #0d0d0d; display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar { width: 220px; background: #fff; border-right: 1px solid #e8e8e8; padding: 24px 16px 16px; display: flex; flex-direction: column; }
+    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+    .logo-icon { width: 36px; height: 36px; background: #e8a030; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 11px; }
+    .logo-text { font-weight: 700; font-size: 15px; }
+    .nav-label { font-size: 11px; color: #b0b0b0; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; text-decoration: none; color: #333; margin-bottom: 2px; }
+    .nav-item:hover { background: #f5f5f5; }
+    .nav-item.active { background: #e8a030; color: #fff; }
+    .nav-item svg { width: 18px; height: 18px; }
+    .sidebar-spacer { flex: 1; }
+    /* ── Main ── */
+    .main { flex: 1; padding: 32px 40px; overflow-y: auto; }
+    .main h1 { font-family: 'Space Grotesk', 'Inter', sans-serif; font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .main .subtitle { color: #7a7a7a; font-size: 14px; margin-bottom: 24px; }
+
+    /* ── Platform Tabs ── */
+    .platform-tabs { display: flex; gap: 16px; margin-bottom: 24px; }
+    .platform-tab { padding: 12px 32px; font-size: 14px; font-weight: 700; cursor: pointer; border: 2px solid #e0e0e0; border-radius: 10px; background: #fafafa; color: #999; transition: all 0.2s; }
+    .platform-tab:hover { border-color: #ccc; color: #666; }
+    .platform-tab.active[data-platform="tw"] { background: #2D5043; color: #fff; border-color: #2D5043; }
+    .platform-tab.active[data-platform="amazon"] { background: #FF9900; color: #fff; border-color: #FF9900; }
+
+    /* ── Step Cards ── */
+    .step-card { background: #fafafa; border: 1px solid #ececec; border-radius: 12px; padding: 20px 24px; margin-bottom: 20px; }
+    .step-label { font-size: 12px; font-weight: 700; color: #e8a030; letter-spacing: 0.5px; margin-bottom: 12px; }
+    .step-row { display: flex; align-items: center; gap: 12px; }
+    .selected-path { font-size: 13px; color: #7a7a7a; }
+
+    /* ── Buttons ── */
+    .btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border: none; border-radius: 8px; background: #e8a030; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-primary:hover { background: #d4912a; }
+    .btn-primary svg { width: 16px; height: 16px; }
+    .btn-dark { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: none; border-radius: 6px; background: #1a1a1a; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-dark:hover { background: #333; }
+    .btn-dark svg { width: 14px; height: 14px; }
+
+    /* ── Drop Zone ── */
+    .drop-zone { border: 2px dashed #ddd; border-radius: 10px; padding: 28px 20px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #e8a030; background: #fdf6ec; }
+    .drop-zone-icon { font-size: 28px; margin-bottom: 6px; }
+    .drop-zone-text { font-size: 14px; color: #7a7a7a; }
+    .drop-zone-text strong { color: #e8a030; }
+    .drop-zone-hint { font-size: 11px; color: #bbb; margin-top: 4px; }
+
+    /* ── Progress Bar ── */
+    .progress-bar { display: none; margin-top: 12px; }
+    .progress-bar .bar-bg { width: 100%; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+    .progress-bar .bar-fill { height: 100%; background: #e8a030; border-radius: 4px; transition: width 0.3s; width: 0%; }
+    .progress-bar .bar-text { font-size: 12px; color: #7a7a7a; margin-top: 4px; }
+
+    /* ── Table Toolbar ── */
+    .table-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; margin-top: 14px; }
+    .filter-dropdown { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #e8e8e8; border-radius: 8px; background: #fff; font-size: 12px; cursor: pointer; color: #7a7a7a; }
+    .filter-dropdown select { border: none; background: none; font-size: 12px; color: #7a7a7a; cursor: pointer; outline: none; }
+
+    /* ── Data Table ── */
+    .data-table-wrap { border: 1px solid #e0e0e0; border-radius: 10px; overflow-y: scroll; overflow-x: auto; max-height: 420px; }
+    .data-table-wrap::-webkit-scrollbar { width: 6px; }
+    .data-table-wrap::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px; }
+    .data-table-wrap::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    .data-table-wrap::-webkit-scrollbar-thumb:hover { background: #aaa; }
+    .data-table-wrap thead { position: sticky; top: 0; z-index: 1; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .resize-handle { height: 6px; cursor: ns-resize; background: transparent; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+    .resize-handle::after { content: ''; width: 40px; height: 3px; border-radius: 2px; background: #d0d0d0; }
+    .resize-handle:hover::after, .resize-handle.active::after { background: #e8a030; }
+    .data-table th { background: #fafafa; text-align: left; padding: 10px 14px; font-weight: 600; color: #7a7a7a; font-size: 11px; border-bottom: 2px solid #e8e8e8; }
+    .data-table td { padding: 9px 14px; border-bottom: 1px solid #e8e8e8; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: #fafaf8; }
+    .data-table .col-po { width: 100px; font-weight: 500; }
+    .data-table .col-courier { width: 110px; }
+    .data-table .col-weight { width: 65px; }
+    .data-table .col-state { width: 45px; }
+    .data-table .col-qty { width: 40px; }
+    .data-table .col-sm { width: 40px; }
+    .data-table .col-invoice { width: 155px; font-weight: 500; }
+    .data-table .col-file { color: #7a7a7a; }
+    .badge-m { color: #e8a030; font-weight: 600; }
+    .data-table tr.row-missing td { background: #fff0f0; }
+    .data-table td[contenteditable="true"] { cursor: text; }
+    .data-table td[contenteditable="true"]:focus { outline: 2px solid #3b82f6; outline-offset: -2px; background: #eff6ff; }
+    .data-table td.cell-edited { background: #fef3c7; box-shadow: inset 0 0 0 1px #f59e0b; }
+    .data-table tr.row-extra td { background: #f5e6d0; }
+    .group-sep td { border-top: 2px solid #e8a030 !important; }
+
+    /* ── Stock Validation ── */
+    .stock-warnings { background: #f8fbf8; border: 1px solid #d4e8d4; border-radius: 8px; margin-top: 12px; max-height: 420px; overflow-y: auto; }
+    .stock-group { border-bottom: 2px solid #e0e0e0; }
+    .stock-group:last-child { border-bottom: none; }
+    .stock-group-header { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 12px; font-weight: 700; background: #eef3ee; color: #374151; }
+    .stock-group-header.out, .stock-group-header.insufficient { color: #dc2626; }
+    .stock-group-header.low { color: #92400e; }
+    .stock-group-header .grp-sku { font-size: 13px; }
+    .grp-flag { margin-left: auto; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 10px; white-space: nowrap; }
+    .grp-flag.bad { color: #fff; background: #dc2626; }
+    .grp-flag.warn { color: #92400e; background: #fef3c7; }
+    .stock-table-wrap { overflow-x: auto; max-width: 100%; }
+    .stock-table { border-collapse: collapse; font-size: 11px; white-space: nowrap; min-width: 100%; }
+    .stock-table th { background: #f3f6f3; text-align: left; padding: 5px 10px; font-weight: 600; color: #555; border-bottom: 1px solid #ddd; position: sticky; top: 0; }
+    .stock-table td { padding: 5px 10px; border-bottom: 1px solid #eee; }
+    .stock-table tr.out td.st-status, .stock-table tr.insufficient td.st-status { color: #dc2626; font-weight: 600; }
+    .stock-table tr.low td.st-status { color: #92400e; font-weight: 600; }
+    .stock-table tr.notfound td.st-status { color: #6b7280; font-weight: 600; }
+    .stock-table tr.ok td.st-status { color: #16a34a; font-weight: 600; }
+    .stock-table tr.ok td { opacity: 0.7; }
+    .stock-table tr.kit-row td { color: #2563eb; font-size: 10px; background: #f0f4ef; }
+    .stock-row { display: flex; align-items: center; gap: 8px; padding: 10px 14px 10px 28px; font-size: 12px; font-weight: 500; border-bottom: 1px solid #e8e8e8; }
+    .stock-row:last-child { border-bottom: none; }
+    .stock-row.out { color: #dc2626; }
+    .stock-row.insufficient { color: #dc2626; }
+    .stock-row.low { color: #92400e; }
+    .stock-row.notfound { color: #6b7280; }
+    .stock-row .stock-text { flex: 1; }
+    .stock-badge-kit { background: #E8A030; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+    .stock-btn-remove { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; background: none; }
+    .stock-btn-remove.out { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+    .stock-btn-remove.insufficient { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+    .stock-btn-remove.low { color: #92400e; border-color: #fcd34d; background: #fffbeb; }
+    .stock-btn-remove.notfound { color: #6b7280; border-color: #d1d5db; background: #f3f4f6; }
+    .stock-btn-remove.ok { color: #6b7280; border-color: #d1d5db; background: #f3f4f6; }
+    .stock-btn-remove:hover { opacity: 0.8; }
+    .kit-expand { background: #f0f4ef; }
+    .kit-comp { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 44px; font-size: 11px; border-bottom: 1px solid #dde8dd; }
+    .kit-comp:last-child { border-bottom: none; }
+    .kit-comp .comp-arrow { color: #aaa; }
+    .kit-comp .comp-sku { color: #555; font-weight: 600; }
+    .kit-comp .comp-avail { font-weight: 700; }
+    .kit-comp .comp-avail.ok { color: #3a7a3a; }
+    .kit-comp .comp-avail.bad { color: #dc2626; }
+    .badge-bottleneck { background: #dc2626; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; }
+    .stock-meta { background: #FFF7ED; border: 1px solid #fed7aa; border-radius: 8px; padding: 14px 16px; margin-top: 12px; font-size: 12px; color: #92400e; }
+    .stock-meta .meta-line { margin-bottom: 4px; }
+    .stock-meta .meta-line:last-child { margin-bottom: 0; }
+    /* ── Stock Warning 三类视图 ── */
+    .sw-view { margin-top: 12px; display: flex; flex-direction: column; gap: 14px; }
+    .sw-cat { border: 1px solid #e6e6e6; border-radius: 8px; overflow: hidden; }
+    .sw-cat-head { padding: 8px 14px; font-size: 13px; font-weight: 700; display: flex; align-items: baseline; gap: 8px; }
+    .sw-cat-head .sw-rule { font-size: 11px; font-weight: 400; color: #888; }
+    .sw-cat.c3 .sw-cat-head { background: #f5f3ff; color: #6d28d9; }
+    .sw-cat.c2 .sw-cat-head { background: #fffbeb; color: #b45309; }
+    .sw-cat.c1 .sw-cat-head { background: #fef2f2; color: #dc2626; }
+    .sw-cat.cnf .sw-cat-head { background: #f1f5f9; color: #475569; }
+    .sw-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .sw-table th { text-align: left; padding: 5px 14px; font-weight: 600; color: #999; background: #fafafa; border-bottom: 1px solid #eee; }
+    .sw-table td { padding: 5px 14px; border-bottom: 1px solid #f2f2f2; }
+    .sw-grp-head td { background: #faf8ff; font-weight: 700; color: #444; }
+    .sw-inv { font-weight: 700; }
+    .sw-st-in { color: #16a34a; font-weight: 600; }
+    .sw-st-out { color: #dc2626; font-weight: 600; }
+    .sw-low { background: #fef3c7; color: #92400e; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-left: 6px; }
+    .sw-empty { padding: 10px 14px; font-size: 11px; color: #aaa; }
+    .sw-act { text-align: right; white-space: nowrap; width: 1%; }
+    .sw-rm { padding: 2px 7px !important; font-size: 11px !important; }
+    .btn-green { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: none; border-radius: 6px; background: #2D5043; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-green:hover { background: #3a6555; }
+
+    /* ── Validation Results ── */
+    .validate-results { background: #f8fbf8; border: 1px solid #d4e8d4; border-radius: 8px; padding: 14px 16px; margin-top: 12px; }
+    .validate-check { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; font-weight: 500; }
+    .validate-check:last-child { margin-bottom: 0; }
+    .validate-check.pass { color: #3a7a3a; }
+    .validate-check.warn { color: #92400e; }
+    .validate-check .icon { width: 14px; height: 14px; flex-shrink: 0; }
+    .validate-note { font-size: 11px; color: #999; font-style: italic; margin-top: 8px; }
+
+    /* ── Loading / Toast ── */
+    .loading { color: #999; font-size: 13px; margin-top: 8px; }
+    .toast { position: fixed; top: 24px; right: 24px; background: #333; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; }
+    .toast.show { opacity: 1; }
+
+    /* ── API Log Panel ── */
+    .api-log-toggle { position: fixed; bottom: 16px; right: 16px; background: #333; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; z-index: 90; }
+    .api-log-toggle:hover { background: #555; }
+    .api-log-toggle .badge { display: inline-block; background: #e8a030; color: #fff; border-radius: 10px; padding: 0 6px; margin-left: 6px; font-size: 11px; font-weight: 700; }
+    .api-log-panel { position: fixed; bottom: 56px; right: 16px; width: 520px; max-height: 400px; background: #1e1e1e; color: #d4d4d4; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.25); z-index: 90; display: none; flex-direction: column; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; }
+    .api-log-panel.show { display: flex; }
+    .api-log-header { padding: 10px 14px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+    .api-log-header span { font-weight: 600; color: #e8a030; font-size: 13px; }
+    .api-log-header button { background: none; border: none; color: #999; cursor: pointer; font-size: 12px; }
+    .api-log-header button:hover { color: #fff; }
+    .api-log-body { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .api-log-entry { padding: 8px 14px; border-bottom: 1px solid #2a2a2a; }
+    .api-log-entry:last-child { border-bottom: none; }
+    .api-log-row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+    .api-log-method { font-weight: 700; color: #569cd6; }
+    .api-log-url { color: #9cdcfe; }
+    .api-log-status { font-weight: 700; padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+    .api-log-status.s2xx { background: #2d4a2d; color: #6ec86e; }
+    .api-log-status.s4xx { background: #4a3a2d; color: #e8a030; }
+    .api-log-status.s5xx { background: #4a2d2d; color: #e06060; }
+    .api-log-status.serr { background: #4a2d2d; color: #e06060; }
+    .api-log-time { color: #888; margin-left: auto; }
+    .api-log-body-preview { color: #888; font-size: 11px; max-height: 0; overflow: hidden; transition: max-height 0.2s; white-space: pre-wrap; word-break: break-all; }
+    .api-log-entry.expanded .api-log-body-preview { max-height: 300px; overflow-y: auto; }
+    .api-log-expand { background: none; border: none; color: #666; cursor: pointer; font-size: 11px; padding: 2px 0; }
+    .api-log-expand:hover { color: #aaa; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">SL</div>
+    <span class="logo-text">Shipping Label Manager</span>
+  </div>
+  <div class="nav-label">MAIN</div>
+  <a class="nav-item active" href="/static/dashboard.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </a>
+  <a class="nav-item" href="/static/settings.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Settings
+  </a>
+  <a class="nav-item" href="/static/threads.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Threads
+  </a>
+  <a class="nav-item" href="/static/logs.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Logs
+  </a>
+  <div class="sidebar-spacer"></div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <h1>Shipping Label Manager</h1>
+  <p class="subtitle">Upload shipping labels, validate against orders, and generate grouped PDFs</p>
+
+  <!-- Platform Tabs -->
+  <div class="platform-tabs">
+    <button class="platform-tab active" data-platform="tw" onclick="switchPlatform('tw')">Temple & Webster</button>
+    <button class="platform-tab" data-platform="amazon" onclick="switchPlatform('amazon')">Amazon</button>
+  </div>
+
+  <!-- STEP 1: Validate Stock -->
+  <div class="step-card" id="stockCard">
+    <div class="step-label">STEP 1 · VALIDATE STOCK</div>
+    <div style="display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start;">
+      <div>
+        <div class="drop-zone" id="csvDropZone" style="padding: 18px 20px;">
+          <div class="drop-zone-icon">&#128202;</div>
+          <div class="drop-zone-text">Drag CSV order file here or <strong>click to select</strong></div>
+          <div class="drop-zone-hint">Single .csv file</div>
+          <input type="file" id="csvFileInput" accept=".csv" style="display:none" />
+        </div>
+        <span class="selected-path" id="csvInfo" style="display:block; margin-top:8px;"></span>
+        <div class="loading" id="csvLoading"></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; padding-top:8px;">
+        <div style="display:flex; align-items:center; gap:6px;" id="thresholdRow" class="selected-path">
+          <span style="font-size:12px; color:#666; white-space:nowrap;">Low Stock Threshold (≤):</span>
+          <input type="number" id="stockThreshold" value="0" min="0" style="width:50px; padding:4px 8px; border:1px solid #d0d0d0; border-radius:6px; font-size:13px; text-align:center;" />
+          <button class="btn-dark" onclick="saveThreshold()" style="padding:4px 10px; font-size:11px;">Save</button>
+          <span id="thresholdSaved" style="font-size:11px; color:#3a7a3a; display:none;">Saved</span>
+        </div>
+        <button class="btn-primary" id="btnCheckStock" onclick="checkStock()" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          Check Stock
+        </button>
+        <button class="btn-dark" id="btnStockWarning" onclick="loadStockWarning()" style="display:none;">
+          &#9888; Stock Warning
+        </button>
+        <button class="btn-primary" id="btnRemoveAll" onclick="removeInsufficient()" style="display:none;">
+          Remove All Insufficient
+        </button>
+        <button class="btn-green" id="btnDownloadCleaned" onclick="downloadCleanedCSV()" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 3v12"/><path d="M18 9l-6 6-6-6"/><path d="M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/></svg>
+          Download Cleaned CSV
+        </button>
+      </div>
+    </div>
+    <div id="stockStatus" class="selected-path" style="margin-top:8px;"></div>
+    <div id="stockWarnings" class="stock-warnings" style="display:none;"></div>
+    <div id="stockMeta" class="stock-meta" style="display:none;"></div>
+    <div id="stockWarningView" class="sw-view" style="display:none;"></div>
+  </div>
+
+  <!-- STEP 2: Upload PDF/ZPL files -->
+  <div class="step-card" id="step2Card">
+    <div class="step-label">STEP 2 · UPLOAD FILES</div>
+    <div class="drop-zone" id="pdfDropZone">
+      <div class="drop-zone-icon">&#128193;</div>
+      <div class="drop-zone-text">Drag PDF/ZPL files here or click to select</div>
+      <div class="drop-zone-hint" style="display:flex; gap:12px; justify-content:center; margin-top:8px;">
+        <button class="btn-dark" onclick="event.stopPropagation(); document.getElementById('pdfFolderInput').click();">Select Folder</button>
+        <button class="btn-dark" onclick="event.stopPropagation(); document.getElementById('pdfFileInput').click();">Select Files</button>
+      </div>
+      <input type="file" id="pdfFileInput" multiple accept=".pdf,.zpl" style="display:none" />
+      <input type="file" id="pdfFolderInput" webkitdirectory style="display:none" />
+    </div>
+    <span class="selected-path" id="extractInfo" style="display:block; margin-top:8px;"></span>
+    <div class="progress-bar" id="zplProgress">
+      <div class="bar-bg"><div class="bar-fill" id="zplProgressFill"></div></div>
+      <div class="bar-text" id="zplProgressText"></div>
+    </div>
+    <div class="loading" id="extractLoading"></div>
+  </div>
+
+  <!-- Preview Table -->
+  <div class="step-card" id="tableSection" style="display:none">
+    <div class="table-toolbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+      </div>
+      <div id="downloadSection" style="display:none;">
+        <button class="btn-dark" onclick="downloadExtractCSV()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M18 9l-6 6-6-6"/><path d="M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/></svg>
+          Download CSV
+        </button>
+      </div>
+    </div>
+    <div class="data-table-wrap">
+      <table class="data-table" id="dataTable">
+        <thead><tr id="dataTableHead"></tr></thead>
+        <tbody id="dataTableBody"></tbody>
+      </table>
+    </div>
+    <div class="resize-handle" id="resizeHandle"></div>
+    <div class="validate-results" id="validateResults" style="display:none; margin-top: 12px;">
+      <div id="validateChecks"></div>
+      <div class="validate-note"></div>
+    </div>
+    <div id="inventoryWarnings" style="display:none; margin-top: 12px;"></div>
+  </div>
+
+  <!-- STEP 3: Merge & Download -->
+  <div class="step-card">
+    <div class="step-label">STEP 3 · EXPORT</div>
+    <div class="step-row" style="gap: 12px;">
+      <button class="btn-primary" id="btnSendOMS" onclick="sendToOMS()" style="display:inline-flex;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Send to OMS
+      </button>
+      <button class="btn-primary" id="btnSendOMSDisabled" disabled style="background:#ccc; color:#999; cursor:not-allowed; pointer-events:none; display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Send to OMS
+      </button>
+      <span class="selected-path" id="omsInfo"></span>
+      <button class="btn-primary" onclick="printPDF()" style="background: #1a1a1a;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Download Grouped PDF
+      </button>
+      <span class="selected-path" id="mergeInfo"></span>
+    </div>
+    <div class="loading" id="mergeLoading"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- API Log -->
+<button class="api-log-toggle" onclick="toggleLogPanel()">API Log <span class="badge" id="logBadge">0</span></button>
+<div class="api-log-panel" id="apiLogPanel">
+  <div class="api-log-header"><span>API Interaction Log</span><button onclick="clearLog()">Clear</button></div>
+  <div class="api-log-body" id="apiLogBody"></div>
+</div>
+
+<script>
+const API = '/api';
+const state = { sessionId: '', platform: 'tw', _hasPdf: false };
+let extractedRows = [];
+
+// 加载 threshold
+(async function loadThreshold() {
+  try {
+    const res = await fetch(`${API}/settings`);
+    if (res.ok) {
+      const cfg = await res.json();
+      const t = cfg?.shared?.stock_threshold || 0;
+      document.getElementById('stockThreshold').value = t;
+    }
+  } catch {}
+})();
+
+async function saveThreshold() {
+  const val = parseInt(document.getElementById('stockThreshold').value) || 0;
+  try {
+    const res = await fetch(`${API}/settings`);
+    if (!res.ok) return;
+    const cfg = await res.json();
+    if (!cfg.shared) cfg.shared = {};
+    cfg.shared.stock_threshold = val;
+    const saveRes = await fetch(`${API}/settings`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cfg),
+    });
+    if (saveRes.ok) {
+      const saved = document.getElementById('thresholdSaved');
+      saved.style.display = 'inline';
+      setTimeout(() => saved.style.display = 'none', 2000);
+    }
+  } catch (e) { showToast('Save failed: ' + e.message, 3000); }
+}
+
+// 监听 Settings 页面的配置更新，自动刷新数据
+try {
+  const bc = new BroadcastChannel('pdf2csv');
+  bc.onmessage = (e) => {
+    if (e.data === 'config_updated' && state.sessionId) {
+      showToast('Config updated, refreshing...');
+      runExtract();
+    }
+  };
+} catch {}
+
+function switchPlatform(p) {
+  state.platform = p;
+  state.sessionId = '';
+  state._hasPdf = false;
+  state._stockResults = null;
+  document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.platform-tab[onclick="switchPlatform('${p}')"]`).classList.add('active');
+  // 重置 UI
+  document.getElementById('extractInfo').textContent = '';
+  document.getElementById('csvInfo').textContent = '';
+  document.getElementById('tableSection').style.display = 'none';
+  document.getElementById('validateResults').style.display = 'none';
+  document.getElementById('mergeInfo').textContent = '';
+  document.getElementById('omsInfo').textContent = '';
+  // Stock validation reset
+  document.getElementById('stockStatus').textContent = '';
+  document.getElementById('stockWarnings').style.display = 'none';
+  document.getElementById('stockMeta').style.display = 'none';
+  document.getElementById('stockWarningView').style.display = 'none';
+  document.getElementById('btnCheckStock').style.display = 'none';
+  document.getElementById('btnStockWarning').style.display = 'none';
+  document.getElementById('btnRemoveAll').style.display = 'none';
+  document.getElementById('btnDownloadCleaned').style.display = 'none';
+  // Send to OMS available for both TW and Amazon
+  document.getElementById('btnSendOMS').style.display = 'inline-flex';
+  document.getElementById('btnSendOMSDisabled').style.display = 'none';
+  extractedRows = [];
+}
+
+// ── API Log ──
+let logCount = 0;
+function toggleLogPanel() { document.getElementById('apiLogPanel').classList.toggle('show'); }
+function clearLog() { logCount = 0; document.getElementById('apiLogBody').innerHTML = ''; document.getElementById('logBadge').textContent = '0'; }
+
+function addLogEntry(method, url, status, statusText, duration, reqBody, resBody) {
+  logCount++;
+  document.getElementById('logBadge').textContent = logCount;
+  const sClass = status >= 500 ? 's5xx' : status >= 400 ? 's4xx' : status >= 200 ? 's2xx' : 'serr';
+  const shortUrl = url.replace(API, '');
+  const ts = new Date().toLocaleTimeString('en-US', { hour12: false });
+  let reqStr = '';
+  try { reqStr = (reqBody instanceof FormData) ? `(FormData)` : reqBody ? JSON.stringify(JSON.parse(reqBody), null, 2) : ''; } catch { reqStr = reqBody || ''; }
+  let resStr = ''; try { resStr = typeof resBody === 'string' ? JSON.stringify(JSON.parse(resBody), null, 2) : JSON.stringify(resBody, null, 2); } catch { resStr = String(resBody || ''); }
+  if (resStr.length > 800) resStr = resStr.substring(0, 800) + '\n... (truncated)';
+  const entry = document.createElement('div');
+  entry.className = 'api-log-entry';
+  entry.innerHTML = `<div class="api-log-row1"><span class="api-log-method">${method}</span><span class="api-log-url">${shortUrl}</span><span class="api-log-status ${sClass}">${status} ${statusText}</span><span class="api-log-time">${duration}ms · ${ts}</span></div><button class="api-log-expand" onclick="this.parentElement.classList.toggle('expanded')">▶ Details</button><div class="api-log-body-preview"><b>→ Request:</b>\n${reqStr || '(none)'}\n\n<b>← Response:</b>\n${resStr}</div>`;
+  document.getElementById('apiLogBody').insertBefore(entry, document.getElementById('apiLogBody').firstChild);
+}
+
+async function apiFetch(url, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+  const reqBody = options.body || null;
+  const start = performance.now();
+  try {
+    const res = await fetch(url, options);
+    const duration = Math.round(performance.now() - start);
+    const clone = res.clone();
+    let resBody = ''; try { resBody = await clone.text(); } catch {}
+    addLogEntry(method, url, res.status, res.statusText, duration, reqBody, resBody);
+    return res;
+  } catch (err) {
+    const duration = Math.round(performance.now() - start);
+    addLogEntry(method, url, 0, 'Network Error', duration, reqBody, err.message);
+    throw err;
+  }
+}
+
+function showToast(msg, ms = 2500) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), ms); }
+function setLoading(id, on) { document.getElementById(id).textContent = on ? 'Loading...' : ''; }
+
+// ── Drop Zone Setup ──
+function setupDropZone(zoneId, inputId, onFiles) {
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  zone.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => { if (input.files.length) onFiles(input.files); });
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); if (e.dataTransfer.files.length) onFiles(e.dataTransfer.files); });
+}
+
+// ── STEP 1: Upload PDFs (file or folder) ──
+// Drop zone only handles drag-drop for PDFs (click handled by buttons)
+(function() {
+  const zone = document.getElementById('pdfDropZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); if (e.dataTransfer.files.length) handlePdfInput(e.dataTransfer.files); });
+})();
+document.getElementById('pdfFileInput').addEventListener('change', function() { if (this.files.length) handlePdfInput(this.files); });
+document.getElementById('pdfFolderInput').addEventListener('change', function() { if (this.files.length) handlePdfInput(this.files); });
+
+function handlePdfInput(files) {
+  const allFiles = [...files];
+  const zpls = allFiles.filter(f => f.name.toLowerCase().endsWith('.zpl'));
+  const pdfs = allFiles.filter(f => f.name.toLowerCase().endsWith('.pdf'));
+
+  // 同名文件：ZPL 优先，去掉对应的 PDF
+  const zplBaseNames = new Set(zpls.map(f => f.name.toLowerCase().replace('.zpl', '')));
+  const filteredPdfs = pdfs.filter(f => !zplBaseNames.has(f.name.toLowerCase().replace('.pdf', '')));
+
+  if (!zpls.length && !filteredPdfs.length) return showToast('No PDF or ZPL files found');
+
+  const firstPath = allFiles[0].webkitRelativePath || '';
+  const folderName = firstPath.includes('/') ? firstPath.split('/')[0] : '';
+  const names = [...zpls.map(f => f.name), ...filteredPdfs.map(f => f.name)];
+  if (folderName) {
+    document.getElementById('extractInfo').textContent = `Folder: ${folderName}/ (${names.length} files: ${names.join(', ')})`;
+  } else {
+    document.getElementById('extractInfo').textContent = `Files: ${names.join(', ')}`;
+  }
+
+  uploadMixed(zpls, filteredPdfs);
+}
+
+function showZplProgress(done, total, text) {
+  const bar = document.getElementById('zplProgress');
+  const fill = document.getElementById('zplProgressFill');
+  const txt = document.getElementById('zplProgressText');
+  bar.style.display = 'block';
+  fill.style.width = total > 0 ? `${Math.round(done / total * 100)}%` : '0%';
+  txt.textContent = text || `Converting ${done}/${total} labels...`;
+}
+function hideZplProgress() {
+  document.getElementById('zplProgress').style.display = 'none';
+}
+
+async function uploadZplWithProgress(zplFile) {
+  const formData = new FormData();
+  formData.append('file', zplFile);
+  if (state.sessionId) formData.append('session_id', state.sessionId);
+
+  const res = await fetch(`${API}/upload/zpl`, { method: 'POST', body: formData });
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let result = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const data = JSON.parse(line.slice(6));
+      if (data.type === 'start') {
+        showZplProgress(0, data.total, `Converting ${zplFile.name}: 0/${data.total} labels...`);
+      } else if (data.type === 'progress') {
+        showZplProgress(data.done, data.total, `Converting ${zplFile.name}: ${data.done}/${data.total} labels...`);
+      } else if (data.type === 'done') {
+        result = data;
+        const failMsg = data.failed ? ` (${data.failed.length} failed)` : '';
+        showZplProgress(data.total_labels, data.total_labels, `${zplFile.name}: ${data.page_count}/${data.total_labels} converted${failMsg}`);
+      } else if (data.type === 'error') {
+        throw new Error(data.message);
+      }
+    }
+  }
+  return result;
+}
+
+async function uploadMixed(zpls, pdfs) {
+  setLoading('extractLoading', true);
+  document.getElementById('tableSection').style.display = 'none';
+  const infoEl = document.getElementById('extractInfo');
+  try {
+    // 1. ZPL 逐个上传，带进度条
+    if (zpls.length) {
+      for (const zplFile of zpls) {
+        const data = await uploadZplWithProgress(zplFile);
+        if (data) state.sessionId = data.session_id;
+      }
+      setTimeout(hideZplProgress, 2000);
+    }
+    // 2. PDF 上传
+    if (pdfs.length) {
+      const formData = new FormData();
+      for (const f of pdfs) formData.append('files', f);
+      if (state.sessionId) formData.append('session_id', state.sessionId);
+      const res = await apiFetch(`${API}/upload/pdfs`, { method: 'POST', body: formData });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+      const data = await res.json();
+      state.sessionId = data.session_id;
+    }
+    state._hasPdf = true;
+    showToast(`Uploaded ${zpls.length} ZPL + ${pdfs.length} PDF files`);
+    await runExtract();
+  } catch (e) { showToast('Upload failed: ' + e.message, 3000); }
+  setLoading('extractLoading', false);
+}
+
+async function uploadPDFs(files) {
+  setLoading('extractLoading', true);
+  document.getElementById('tableSection').style.display = 'none';
+  const infoEl = document.getElementById('extractInfo');
+  const prefix = infoEl.textContent || '';
+  infoEl.textContent = (prefix ? prefix + ' — ' : '') + `Uploading ${files.length} PDF(s)...`;
+  try {
+    const formData = new FormData();
+    for (const f of files) formData.append('files', f);
+    const res = await apiFetch(`${API}/upload/pdfs`, { method: 'POST', body: formData });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const data = await res.json();
+    state.sessionId = data.session_id;
+    state._hasPdf = true;
+    infoEl.textContent = (prefix ? prefix + ' — ' : '') + `${data.pdf_count} PDF(s) uploaded`;
+    showToast(`Uploaded ${data.pdf_count} PDF file(s)`);
+    await runExtract();
+  } catch (e) { showToast('Upload failed: ' + e.message, 3000); infoEl.textContent = ''; }
+  setLoading('extractLoading', false);
+}
+
+async function runExtract() {
+  if (!state.sessionId) return;
+  setLoading('extractLoading', true);
+  try {
+    const res = await apiFetch(`${API}/extract`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: state.sessionId, platform: state.platform }),
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const data = await res.json();
+    document.getElementById('extractInfo').textContent += ` — ${data.po_count} POs from ${data.pdf_count} PDFs`;
+    const missingPOs = data.validation ? data.validation.pdf_missing || [] : [];
+    const extraPOs = data.validation ? data.validation.csv_missing || [] : [];
+    renderTable(data.preview.rows, data.preview.columns, data.group_keys, missingPOs, extraPOs);
+    if (data.validation) {
+      showValidation(data.validation);
+    }
+    // Inventory 警告显示在预览表格下方
+    const invWarnDiv = document.getElementById('inventoryWarnings');
+    if (data.inventory_warnings && data.inventory_warnings.length > 0) {
+      invWarnDiv.innerHTML = data.inventory_warnings.map(w => `<div class="validate-check warn" style="padding:8px 12px;margin-bottom:4px;">⚠ ${w}</div>`).join('');
+      invWarnDiv.style.display = 'block';
+    } else {
+      invWarnDiv.innerHTML = '';
+      invWarnDiv.style.display = 'none';
+    }
+    showToast(data.has_csv ? `Merged: ${data.po_count} POs` : `Extracted ${data.po_count} POs from ${data.pdf_count} PDFs`);
+  } catch (e) { showToast('Extract failed: ' + e.message, 3000); }
+  setLoading('extractLoading', false);
+}
+
+// ── STEP 1: Upload CSV (for stock validation) ──
+setupDropZone('csvDropZone', 'csvFileInput', uploadCSV);
+
+async function uploadCSV(files) {
+  const csvFiles = [...files].filter(f => f.name.toLowerCase().endsWith('.csv'));
+  if (csvFiles.length !== 1) return showToast('Please select a single CSV file');
+  const file = csvFiles[0];
+  document.getElementById('csvInfo').textContent = `File: ${file.name} — uploading...`;
+  setLoading('csvLoading', true);
+  // 重置 stock validation UI
+  document.getElementById('stockWarnings').style.display = 'none';
+  document.getElementById('stockMeta').style.display = 'none';
+  document.getElementById('btnRemoveAll').style.display = 'none';
+  document.getElementById('btnDownloadCleaned').style.display = 'none';
+  document.getElementById('stockStatus').textContent = '';
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (state.sessionId) formData.append('session_id', state.sessionId);
+    const res = await apiFetch(`${API}/upload/csv`, { method: 'POST', body: formData });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const data = await res.json();
+    state.sessionId = data.session_id;
+    document.getElementById('csvInfo').textContent = `File: ${data.csv_filename} — ${data.row_count} rows`;
+    document.getElementById('btnCheckStock').style.display = 'inline-flex';
+    document.getElementById('btnStockWarning').style.display = 'inline-flex';
+    showToast(`CSV uploaded: ${data.row_count} rows`);
+    // 如果已有 PDF，也自动 extract
+    if (state._hasPdf) await runExtract();
+  } catch (e) { showToast('CSV upload failed: ' + e.message, 3000); document.getElementById('csvInfo').textContent = ''; }
+  setLoading('csvLoading', false);
+}
+
+// ── Stock Validation ──
+async function checkStock() {
+  if (!state.sessionId) return showToast('Please upload CSV first');
+  const threshold = parseInt(document.getElementById('stockThreshold').value) || 0;
+  document.getElementById('stockStatus').textContent = 'Checking inventory...';
+  document.getElementById('stockWarnings').style.display = 'none';
+  document.getElementById('stockMeta').style.display = 'none';
+  document.getElementById('btnRemoveAll').style.display = 'none';
+  document.getElementById('btnDownloadCleaned').style.display = 'none';
+  try {
+    const res = await apiFetch(`${API}/validate-stock`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: state.sessionId, platform: state.platform, threshold }),
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const data = await res.json();
+    if (data.error) { showToast(data.error, 3000); document.getElementById('stockStatus').textContent = data.error; return; }
+
+    state._stockResults = data;
+    const results = data.results || [];
+    const summary = data.summary || {};
+    const cols = data.columns || [];
+
+    if (results.length === 0) {
+      document.getElementById('stockStatus').textContent = `All ${summary.total} orders have sufficient stock.`;
+      showToast('All orders have sufficient stock!');
+      return;
+    }
+
+    // 渲染 warnings —— 按 SKU 分组（Kit 展开 + 单行 Remove 按钮，保留原始 index）
+    const warnDiv = document.getElementById('stockWarnings');
+    const statusMap = {
+      ok: { cls: 'ok', icon: '✓', label: 'OK' },
+      out_of_stock: { cls: 'out', icon: '✗', label: 'Out of Stock' },
+      insufficient: { cls: 'insufficient', icon: '✗', label: 'Insufficient' },
+      low_stock: { cls: 'low', icon: '⚠', label: 'Low Stock' },
+      not_found: { cls: 'notfound', icon: '?', label: 'Not Found' },
+    };
+    const isFlagged = (st) => st && st !== 'ok';  // ok 行只是对照，不算问题
+    // 按 SKU 分组，保留每条的原始 index（removeSingleOrder 依赖它）
+    const groups = {};
+    results.forEach((r, i) => { (groups[r.sku] = groups[r.sku] || []).push({ r, i }); });
+    const sevRank = { out_of_stock: 0, insufficient: 1, not_found: 2, low_stock: 3 };
+
+    warnDiv.innerHTML = Object.keys(groups).map(sku => {
+      const items = groups[sku];
+      const first = items[0].r;
+      const kitBadge = first.is_kit ? ' <span class="stock-badge-kit">Kit</span>' : '';
+      const totalNeed = (first.total_need != null) ? first.total_need : items.reduce((a, x) => a + (x.r.need || 0), 0);
+      // 该 SKU 是否无法满足全部订单：存在缺货/不够/未找到，或合计需求 > 库存
+      const availNum = (typeof first.available === 'number') ? first.available : parseInt(first.available, 10);
+      const cantSatisfy = items.some(x => ['insufficient', 'out_of_stock', 'not_found'].includes(x.r.status))
+        || (!isNaN(availNum) && totalNeed > availNum);
+      const gcls = cantSatisfy ? 'insufficient' : 'low';
+      const shortBy = (!isNaN(availNum) && totalNeed > availNum) ? ` · short ${totalNeed - availNum}` : '';
+      // 该 SKU 跨所有订单（含可满足的）的总单数 / 可满足单数 —— "6/8 OK"
+      const totalOrders = (first.sku_total_orders != null) ? first.sku_total_orders : items.length;
+      const okOrders = (first.sku_satisfiable_orders != null) ? first.sku_satisfiable_orders : (totalOrders - items.length);
+      // 0 单可发 → Out of stock；部分可发(0<ok<total) → Can't fulfill all orders；否则 Low stock
+      let flag;
+      if (!cantSatisfy) {
+        flag = `<span class="grp-flag warn">⚠ Low stock</span>`;
+      } else if (okOrders <= 0) {
+        flag = `<span class="grp-flag bad">✗ Out of stock${shortBy}</span>`;
+      } else {
+        flag = `<span class="grp-flag bad">✗ Can't fulfill all orders · ${okOrders}/${totalOrders} OK${shortBy}</span>`;
+      }
+
+      const flaggedCount = items.filter(x => isFlagged(x.r.status)).length;
+      const header = `<div class="stock-group-header ${gcls}">
+        <span class="grp-sku">${sku}</span>${kitBadge}
+        <span>— total demand: ${totalNeed}, available: ${first.available} · ${totalOrders} order(s), ${flaggedCount} flagged</span>
+        ${flag}
+      </div>`;
+
+      // 全字段表格：Status | Remove | 全部原始列
+      const esc = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const headCells = `<th>Status</th><th></th>` + cols.map(c => `<th>${esc(c)}</th>`).join('');
+      const bodyRows = items.map(({ r, i }) => {
+        const s = statusMap[r.status] || statusMap.not_found;
+        // 每一条订单都可单独删除（含 OK 对照行）
+        const removeBtn = `<button class="stock-btn-remove ${s.cls}" onclick="removeSingleOrder(${i})">✕</button>`;
+        const dataCells = cols.map(c => `<td>${esc(r.fields ? r.fields[c] : '')}</td>`).join('');
+        // 订单层级：该单内 0 < 可发件数 < 总件数 → 这一单缺件发货
+        const oTot = r.order_items_total, oOk = r.order_items_ok;
+        const partialBadge = (oTot != null && oOk != null && oOk > 0 && oOk < oTot)
+          ? ` <span class="grp-flag warn" title="该订单只有部分商品可发货">⚠ Partial order · ${oOk}/${oTot} items OK</span>`
+          : '';
+        let tr = `<tr class="stock-trow ${s.cls}" id="stockRow${i}">
+          <td class="st-status">${s.icon} ${s.label}${partialBadge}</td>
+          <td>${removeBtn}</td>${dataCells}
+        </tr>`;
+        if (r.components && r.components.length > 0) {
+          const comps = r.components.map(c => {
+            const bn = c.bottleneck ? ' ⚠bottleneck' : '';
+            return `${esc(c.sku)} x${c.qty} → avail ${c.available}${bn}`;
+          }).join(' ; ');
+          tr += `<tr class="kit-row"><td></td><td></td><td colspan="${cols.length}">└─ Kit: ${comps}</td></tr>`;
+        }
+        return tr;
+      }).join('');
+
+      return `<div class="stock-group">${header}
+        <div class="stock-table-wrap">
+          <table class="stock-table"><thead><tr>${headCells}</tr></thead><tbody>${bodyRows}</tbody></table>
+        </div></div>`;
+    }).join('');
+    warnDiv.style.display = 'block';
+
+    const parts = [];
+    if (summary.out_of_stock) parts.push(`${summary.out_of_stock} out of stock`);
+    if (summary.insufficient) parts.push(`${summary.insufficient} insufficient`);
+    if (summary.low_stock) parts.push(`${summary.low_stock} low stock`);
+    if (summary.not_found) parts.push(`${summary.not_found} not found`);
+    // results 现含 ok 对照行，问题数按非-ok 行计
+    const issueCount = results.filter(r => isFlagged(r.status)).length;
+    document.getElementById('stockStatus').textContent = `${issueCount} issue(s): ${parts.join(', ')}`;
+    document.getElementById('btnRemoveAll').style.display = 'inline-flex';
+    showToast(`Stock check: ${issueCount} issue(s) found`);
+  } catch (e) {
+    showToast('Stock check failed: ' + e.message, 3000);
+    document.getElementById('stockStatus').textContent = 'Stock check failed';
+  }
+}
+
+// ── Stock Warning（三类监控视图）──
+async function loadStockWarning() {
+  if (!state.sessionId) return showToast('Please upload CSV first');
+  const threshold = parseInt(document.getElementById('stockThreshold').value) || 0;
+  const view = document.getElementById('stockWarningView');
+  view.style.display = 'flex';
+  view.innerHTML = '<div class="sw-empty">Loading stock warning…</div>';
+  try {
+    const url = `${API}/stock-warning?session_id=${encodeURIComponent(state.sessionId)}&platform=${state.platform}&threshold=${threshold}`;
+    const res = await apiFetch(url);
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    view.innerHTML = renderStockWarning(await res.json());
+  } catch (e) {
+    view.innerHTML = `<div class="sw-empty">Stock warning failed: ${e.message}</div>`;
+    showToast('Stock warning failed: ' + e.message, 3000);
+  }
+}
+
+function renderStockWarning(data) {
+  const esc = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const low = (b) => b ? '<span class="sw-low">&#9888; LOW</span>' : '';
+  // 整单删除按钮（按 PO # / invoice 移除该单全部 SKU 行）
+  const rm = (inv) => `<button class="stock-btn-remove out sw-rm" title="移除整单 ${esc(inv)}" onclick="removeWarningOrder('${esc(inv).replace(/'/g, "\\'")}')">&#10005;</button>`;
+  const ns = data.not_satisfy_all || [], pa = data.partially_in_stock || [], oo = data.out_of_stock || [], nf = data.not_found || [];
+
+  // ③ not_satisfy_all —— 按争抢 SKU 分组，订单按 PlaceTime；每个订单一行一删
+  const c3body = ns.map(g => {
+    const head = `<tr class="sw-grp-head"><td colspan="4">${esc(g.sku)}${low(g.low_stock)} — total need: ${g.total_need} · total stock: ${g.total_stock}</td></tr>`;
+    const rows = (g.orders || []).map(o => `<tr><td class="sw-inv">${esc(o.invoice)}</td><td>${o.need}</td><td>${esc(o.place_time)}</td><td class="sw-act">${rm(o.invoice)}</td></tr>`).join('');
+    return head + rows;
+  }).join('');
+  const c3 = `<div class="sw-cat c3"><div class="sw-cat-head">③ not_satisfy_all <span class="sw-rule">订单内有 in + 部分满足(ns)、无整单 out，按 PlaceTime 抢库存</span></div>`
+    + (ns.length ? `<table class="sw-table"><thead><tr><th>Invoice</th><th>Need</th><th>PlaceTime</th><th></th></tr></thead><tbody>${c3body}</tbody></table>` : `<div class="sw-empty">无</div>`) + `</div>`;
+
+  // ② partially_in_stock —— 按 Invoice 分组，每 SKU 一层；删除按钮在组头（整单）
+  const c2body = pa.map(o => {
+    const head = `<tr class="sw-grp-head"><td colspan="4">${esc(o.invoice)} ${rm(o.invoice)}</td></tr>`;
+    const layers = (o.layers || []).map(l => `<tr><td>${esc(l.sku)}${low(l.low_stock)}</td><td>${l.need}</td><td>${l.available}</td><td class="${l.status === 'in' ? 'sw-st-in' : 'sw-st-out'}">${l.status === 'in' ? 'in stock' : 'out of stock'}</td></tr>`).join('');
+    return head + layers;
+  }).join('');
+  const c2 = `<div class="sw-cat c2"><div class="sw-cat-head">② partially_in_stock <span class="sw-rule">订单内既有 in 又有 out(无 ns)，可拆单先发 in 的部分</span></div>`
+    + (pa.length ? `<table class="sw-table"><thead><tr><th>SKU</th><th>Need</th><th>Available</th><th>Status</th></tr></thead><tbody>${c2body}</tbody></table>` : `<div class="sw-empty">无</div>`) + `</div>`;
+
+  // ① out_of_stock —— 平铺，一行一缺货 SKU；删除按钮只在每个订单首行（整单删）
+  const seen = new Set();
+  const c1body = oo.map(r => {
+    const first = !seen.has(r.invoice); seen.add(r.invoice);
+    return `<tr><td class="sw-inv">${first ? esc(r.invoice) : ''}</td><td>${esc(r.sku)}${low(r.low_stock)}</td><td>${r.need}</td><td>${r.available}</td><td class="sw-act">${first ? rm(r.invoice) : ''}</td></tr>`;
+  }).join('');
+  const c1 = `<div class="sw-cat c1"><div class="sw-cat-head">① out_of_stock <span class="sw-rule">订单内没有可整发的 SKU：全 out，或 out + 部分满足(ns)</span></div>`
+    + (oo.length ? `<table class="sw-table"><thead><tr><th>Invoice</th><th>SKU</th><th>Need</th><th>Available</th><th></th></tr></thead><tbody>${c1body}</tbody></table>` : `<div class="sw-empty">无</div>`) + `</div>`;
+
+  // not_found —— 独立(数据问题,非缺货):Neto 查不到该 SKU,该改数据而非补货
+  const nfseen = new Set();
+  const nfbody = nf.map(r => {
+    const first = !nfseen.has(r.invoice); nfseen.add(r.invoice);
+    return `<tr><td class="sw-inv">${first ? esc(r.invoice) : ''}</td><td>${esc(r.sku)}</td><td>${r.need}</td><td class="sw-act">${first ? rm(r.invoice) : ''}</td></tr>`;
+  }).join('');
+  const cNF = nf.length
+    ? `<div class="sw-cat cnf"><div class="sw-cat-head">⚠ not_found <span class="sw-rule">Neto 查不到该 SKU —— 数据问题(拼错/未上架),需改数据,不是补货;独立于 out</span></div>`
+      + `<table class="sw-table"><thead><tr><th>Invoice</th><th>SKU</th><th>Need</th><th></th></tr></thead><tbody>${nfbody}</tbody></table></div>`
+    : '';
+
+  return cNF + c3 + c2 + c1;
+}
+
+// 整单删除：复用 /remove-insufficient（按 PO # 移除该单所有行），删完刷新视图
+async function removeWarningOrder(invoice) {
+  if (!invoice || !state.sessionId) return;
+  try {
+    const res = await apiFetch(`${API}/remove-insufficient`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: state.sessionId, platform: state.platform, order_ids: [invoice] }),
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const data = await res.json();
+    showToast(`已移除 ${invoice} · 剩 ${data.remaining_count} 行`);
+    document.getElementById('btnDownloadCleaned').style.display = 'inline-flex';
+    await loadStockWarning();   // 重新分类渲染
+  } catch (e) {
+    showToast('删除失败: ' + e.message, 3000);
+  }
+}
+
+async function removeSingleOrder(idx) {
+  if (!state._stockResults || !state._stockResults.results) return;
+  const r = state._stockResults.results[idx];
+  if (!r) return;
+  try {
+    const res = await apiFetch(`${API}/remove-insufficient`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: state.sessionId, platform: state.platform, order_ids: [r.order_id] }),
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const data = await res.json();
+    // 隐藏该行
+    const row = document.getElementById(`stockRow${idx}`);
+    if (row) {
+      row.style.display = 'none';
+      const nxt = row.nextElementSibling;
+      if (nxt && (nxt.classList.contains('kit-expand') || nxt.classList.contains('kit-row'))) nxt.style.display = 'none';
+    }
+    // 从缓存结果中移除
+    state._stockResults.results[idx] = null;
+    document.getElementById('csvInfo').textContent = `Cleaned CSV: ${data.cleaned_rows} rows (${data.removed_count} removed)`;
+    document.getElementById('btnDownloadCleaned').style.display = 'inline-flex';
+    showToast(`Removed order #${r.order_id}`);
+    if (state._hasPdf) await runExtract();
+  } catch (e) { showToast('Remove failed: ' + e.message, 3000); }
+}
+
+async function removeInsufficient() {
+  if (!state._stockResults || !state._stockResults.results) return;
+  // 只移除有问题的行；ok 对照行不参与（status === 'ok' 能正常发货）
+  const activeResults = state._stockResults.results.filter(r => r !== null && r.status !== 'ok');
+  const orderIds = [...new Set(activeResults.map(r => r.order_id))];
+  if (!orderIds.length) return showToast('No orders to remove');
+  if (!confirm(`Remove ${orderIds.length} order(s) with insufficient stock?`)) return;
+  try {
+    const res = await apiFetch(`${API}/remove-insufficient`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: state.sessionId, platform: state.platform, order_ids: orderIds }),
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const data = await res.json();
+
+    // 显示 metadata summary
+    const metaDiv = document.getElementById('stockMeta');
+    let html = '';
+    (data.removed_details || []).forEach(d => {
+      html += `<div class="meta-line">Removed: #${d.order_id} — ${d.reason}</div>`;
+    });
+    html += `<div class="meta-line" style="margin-top:8px;font-weight:600;">Remaining: ${data.remaining_count} of ${data.original_rows} orders ready for processing</div>`;
+    const fmtSize = b => b < 1024 ? b + ' B' : (b / 1024).toFixed(1) + ' KB';
+    html += `<div class="meta-line">Original CSV: ${data.original_rows} rows (${fmtSize(data.original_size)}) → Cleaned CSV: ${data.cleaned_rows} rows (${fmtSize(data.cleaned_size)})</div>`;
+    metaDiv.innerHTML = html;
+    metaDiv.style.display = 'block';
+
+    document.getElementById('btnRemoveAll').style.display = 'none';
+    document.getElementById('btnDownloadCleaned').style.display = 'inline-flex';
+
+    // 更新 CSV info
+    document.getElementById('csvInfo').textContent = `Cleaned CSV: ${data.cleaned_rows} rows (${data.removed_count} removed)`;
+    showToast(`Removed ${data.removed_count} order(s)`);
+
+    // 如果已有 PDF，重新 extract
+    if (state._hasPdf) await runExtract();
+  } catch (e) { showToast('Remove failed: ' + e.message, 3000); }
+}
+
+async function downloadCleanedCSV() {
+  if (!state.sessionId) return;
+  try {
+    const res = await apiFetch(`${API}/download-cleaned-csv?session_id=${state.sessionId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const cd = res.headers.get('content-disposition') || '';
+    const match = cd.match(/filename="?([^"]+)"?/);
+    const filename = match ? match[1] : 'cleaned.csv';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (e) { showToast('Download failed: ' + e.message, 3000); }
+}
+
+// ── Data Table ──
+let currentGroupKeys = ['Courier', 'Weight'];
+
+let missingPOSet = new Set();
+let extraPOSet = new Set();
+let currentColumns = [];
+
+function renderTable(rows, columns, groupKeys, missingPOs, extraPOs) {
+  if (groupKeys) currentGroupKeys = groupKeys;
+  missingPOSet = new Set(missingPOs || []);
+  extraPOSet = new Set(extraPOs || []);
+  currentColumns = columns;
+
+  // 动态生成表头
+  const thead = document.getElementById('dataTableHead');
+  thead.innerHTML = columns.map(c => `<th>${c}</th>`).join('');
+
+  // 存储行数据
+  const colIdx = {};
+  columns.forEach((c, i) => colIdx[c] = i);
+  extractedRows = rows.map(r => {
+    const obj = { _raw: r };
+    columns.forEach((c, i) => obj[c] = r[i] || '');
+    obj.po = obj['PO #'] || '';
+    obj.courier = obj['Courier'] || '';
+    obj.weight = obj['Weight'] || '';
+    obj.state = obj['State'] || '';
+    return obj;
+  });
+
+  applyFilter();
+  document.getElementById('downloadSection').style.display = 'flex';
+  document.getElementById('tableSection').style.display = 'block';
+}
+
+function groupKeyValue(r) {
+  const map = { Courier: r.courier, Weight: r.weight, State: r.state };
+  return currentGroupKeys.map(k => map[k] || '').join('/');
+}
+
+const LOCKED_COLS = new Set(['PO #', 'Label_Qty', 'Single/Multi_Ctn']);
+
+function applyFilter() {
+  const rows = extractedRows;
+  const tbody = document.getElementById('dataTableBody');
+  tbody.innerHTML = '';
+  let lastGroup = null;
+  rows.forEach((r, rowIdx) => {
+    const tr = document.createElement('tr');
+    const gk = groupKeyValue(r);
+    if (lastGroup !== null && gk !== lastGroup) tr.classList.add('group-sep');
+    lastGroup = gk;
+    if (missingPOSet.has(r.po)) tr.classList.add('row-missing');
+    if (extraPOSet.has(r.po)) tr.classList.add('row-extra');
+    tr.innerHTML = currentColumns.map(c => {
+      const val = r[c] || '';
+      if (c === 'Single/Multi_Ctn' && val === 'M') return `<td>${val ? `<span class="badge-m">M</span>` : ''}</td>`;
+      const editable = !LOCKED_COLS.has(c);
+      const edited = r._edits && r._edits[c] !== undefined;
+      const cls = edited ? ' class="cell-edited"' : '';
+      const ce = editable ? ' contenteditable="true"' : '';
+      return `<td${cls}${ce} data-row="${rowIdx}" data-col="${c}">${val}</td>`;
+    }).join('');
+    tbody.appendChild(tr);
+  });
+}
+
+document.addEventListener('blur', e => {
+  if (e.target.tagName !== 'TD' || !e.target.isContentEditable) return;
+  const rowIdx = parseInt(e.target.dataset.row, 10);
+  const col = e.target.dataset.col;
+  const newVal = e.target.textContent.trim();
+  const r = extractedRows[rowIdx];
+  if (!r) return;
+  const original = (r._original && r._original[col] !== undefined) ? r._original[col] : r[col];
+  if (newVal === original) {
+    if (r._edits) delete r._edits[col];
+    e.target.classList.remove('cell-edited');
+  } else {
+    if (!r._original) r._original = {};
+    if (r._original[col] === undefined) r._original[col] = r[col];
+    if (!r._edits) r._edits = {};
+    r._edits[col] = newVal;
+    e.target.classList.add('cell-edited');
+  }
+  r[col] = newVal;
+}, true);
+
+// ── Print PDF (grouped) ──
+async function printPDF() {
+  if (!state.sessionId) return showToast('Please upload PDF files first');
+  showToast('Generating grouped PDF...');
+  try {
+    const res = await apiFetch(`${API}/print-pdf`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: state.sessionId, platform: state.platform }),
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } catch (e) { showToast('Print PDF failed: ' + e.message, 3000); }
+}
+
+// ── Resize Handle ──
+(function initResize() {
+  const handle = document.getElementById('resizeHandle');
+  const wrap = document.querySelector('.data-table-wrap');
+  let startY, startH;
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault(); startY = e.clientY; startH = wrap.offsetHeight; handle.classList.add('active');
+    const onMove = ev => { wrap.style.maxHeight = Math.max(120, startH + ev.clientY - startY) + 'px'; };
+    const onUp = () => { handle.classList.remove('active'); document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+    document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+  });
+})();
+
+// ── STEP 1b: Download Extract CSV ──
+async function downloadExtractCSV() {
+  if (!state.sessionId) return showToast('Please upload PDF files first');
+  try {
+    const res = await apiFetch(`${API}/extract/download`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: state.sessionId, platform: state.platform }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const cd = res.headers.get('content-disposition') || '';
+    const match = cd.match(/filename="?([^"]+)"?/);
+    const filename = match ? match[1] : 'extract.csv';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (e) { showToast('Download failed: ' + e.message, 3000); }
+}
+
+
+// ── Validation Display ──
+function showValidation(data) {
+  const container = document.getElementById('validateChecks');
+  container.innerHTML = '';
+  (data.checks || []).forEach(check => {
+    const div = document.createElement('div');
+    div.className = `validate-check ${check.status}`;
+    const icon = check.status === 'pass'
+      ? '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9,12 11,14 15,10"/></svg>'
+      : '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    div.innerHTML = `${icon}<span>${check.label}</span>`;
+    container.appendChild(div);
+  });
+  document.getElementById('validateResults').style.display = 'block';
+}
+
+// ── STEP 4: Merge & Download ──
+async function runMerge() {
+  if (!state.sessionId) return showToast('Please complete Steps 1-3 first');
+  setLoading('mergeLoading', true);
+  try {
+    const res = await apiFetch(`${API}/merge`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: state.sessionId, platform: state.platform }),
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const blob = await res.blob();
+    const filename = res.headers.get('content-disposition')?.match(/filename="?(.+?)"?$/)?.[1] || 'export.csv';
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('mergeInfo').textContent = `Downloaded: ${filename}`;
+    showToast('CSV merged and downloaded!');
+  } catch (e) { showToast('Merge failed: ' + e.message, 3000); }
+  setLoading('mergeLoading', false);
+}
+
+async function sendToOMS() {
+  if (!state.sessionId) return showToast('Please upload files first');
+
+  const editedRows = extractedRows.filter(r => r._edits && Object.keys(r._edits).length > 0);
+  const editCount = editedRows.reduce((n, r) => n + Object.keys(r._edits).length, 0);
+  const msg = editCount > 0
+    ? `Send to OMS? You edited ${editCount} cell(s) across ${editedRows.length} row(s). This will push to Neto.`
+    : 'Send orders to OMS? This will push data to Neto.';
+  if (!confirm(msg)) return;
+
+  let editedPayload = null;
+  if (editCount > 0) {
+    editedPayload = extractedRows.map(r => {
+      const out = {};
+      currentColumns.forEach(c => { out[c] = r[c] || ''; });
+      return out;
+    });
+  }
+
+  document.getElementById('omsInfo').textContent = 'Sending...';
+  try {
+    const body = { session_id: state.sessionId, platform: state.platform };
+    if (editedPayload) body.edited_rows = editedPayload;
+    const res = await apiFetch(`${API}/send-to-oms`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    const data = await res.json();
+    const omsInfo = document.getElementById('omsInfo');
+    if (data.status === 'success') {
+      omsInfo.style.color = '#22c55e';
+      omsInfo.textContent = data.message;
+      showToast(data.message);
+    } else if (data.status === 'warning') {
+      omsInfo.style.color = '#f59e0b';
+      omsInfo.innerHTML = data.message + '<br>' + (data.warnings || []).map(w => '- ' + w).join('<br>');
+      showToast(data.message, 5000);
+    } else {
+      omsInfo.style.color = '#ef4444';
+      const allErrors = (data.errors || []).map(e => '- ' + e).join('<br>');
+      omsInfo.innerHTML = data.message + '<br>' + allErrors;
+      showToast(data.message, 5000);
+    }
+  } catch (e) {
+    document.getElementById('omsInfo').textContent = '';
+    showToast('Send to OMS failed: ' + e.message, 5000);
+  }
+}
+
+</script>
+</body>
+</html>

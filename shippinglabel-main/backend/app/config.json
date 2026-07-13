@@ -1,0 +1,377 @@
+{
+  "tw": {
+    "po_prefix": "TW",
+    "po_prefix_exclude": [
+      "TWMF"
+    ],
+    "sheet_id": "",
+    "sheet_tab": "Sheet1",
+    "courier_map": {
+      "KIWI EXPRESS": "Kiwi",
+      "NZ COURIERS": "NZ Couriers",
+      "TPWGRO": "Allied",
+      "IPEC Road Express": "Toll",
+      "Couriers Please": "Couriers Please",
+      "AP Article Id": "Aus Post",
+      "Courier Hunter Express": "Hunter",
+      "DIRECT FREIGHT EXPRESS": "Direct Freight",
+      "Mainfreight": "Mainfreight"
+    },
+    "courier_hierarchy": {
+      "Allied": {
+        "code": "RY",
+        "children": {
+          "Kiwi": {
+            "code": "RY"
+          },
+          "NZ Couriers": {
+            "code": "RY"
+          }
+        }
+      },
+      "Toll": {
+        "code": "TL"
+      },
+      "Couriers Please": {
+        "code": "CP"
+      },
+      "Aus Post": {
+        "code": "AP"
+      },
+      "Hunter": {
+        "code": "HT"
+      },
+      "Direct Freight": {
+        "code": "DF"
+      },
+      "Mainfreight": {
+        "code": "MF"
+      }
+    },
+    "invoice_prefix": "WF",
+    "invoice_courier_level": "parent",
+    "invoice_template": [
+      "{prefix}",
+      "{courier_code}",
+      "{S/M}",
+      "{PO}"
+    ],
+    "nz_couriers": [
+      "Kiwi"
+    ],
+    "sender_keywords": [
+      "FROM:",
+      "SENDER"
+    ],
+    "weight_regex": "(\\d+\\.?\\d*)\\s*[kK][gG]",
+    "group_keys": [
+      "Parent_Courier"
+    ],
+    "sort_order": {
+      "Weight": "desc"
+    },
+    "courier_pin": {
+      "top": [
+        "Kiwi"
+      ],
+      "bottom": [
+        "NZ Couriers"
+      ]
+    },
+    "merge": {
+      "merge_key": "PO #",
+      "merge_columns": [
+        "PO #",
+        "Invoice_Number"
+      ],
+      "merge_strategy": "outer"
+    },
+    "order_mapping": {
+      "PO #": "OrderID",
+      "Ship First Name": "ShipFirstName",
+      "Ship Last Name": "ShipLastName",
+      "Ship Street 1": "ShipStreet1",
+      "Ship Street 2": "ShipStreet2",
+      "Ship City": "ShipCity",
+      "Ship State": "ShipState",
+      "Ship Post Code": "ShipPostCode",
+      "Ship Country": "ShipCountry",
+      "Ship Phone": "ShipContactPhone",
+      "Courier": "ShippingMethod"
+    },
+    "order_line_mapping": {
+      "SKU": "SKU",
+      "Quantity": "Quantity",
+      "Weight": "ShippingWeight",
+      "Unit Price": "UnitPrice"
+    },
+    "courier_sort_order": [
+      "Kiwi",
+      "NZ Couriers",
+      "Allied",
+      "Toll",
+      "Couriers Please",
+      "Aus Post",
+      "Hunter",
+      "Direct Freight",
+      "Mainfreight"
+    ]
+  },
+  "amazon": {
+    "invoice_prefix": "DF",
+    "po_pattern": "D[A-Za-z0-9]{7}[pC]",
+    "sheet_id": "",
+    "sheet_tab": "Sheet1",
+    "courier_map": {
+      "Dragonfly": "Dragonfly",
+      "COURIERS ON DEMAND": "CODE Express",
+      "CODE": "CODE Express",
+      "AP Article": "Australia Post",
+      "PARCELPOINT": "Parcel Point",
+      "CPBFWET": "Couriers Please"
+    },
+    "default_courier": "Amazon",
+    "courier_hierarchy": {
+      "Amazon": {
+        "code": "AM",
+        "children": {
+          "Dragonfly": {
+            "code": "AM"
+          },
+          "CODE Express": {
+            "code": "AM"
+          },
+          "Australia Post": {
+            "code": "AM"
+          },
+          "Parcel Point": {
+            "code": "AM"
+          }
+        }
+      },
+      "Couriers Please": {
+        "code": "CP"
+      }
+    },
+    "sender_keywords": [
+      "SHIP FROM",
+      "Ship From",
+      "From",
+      "Amazon Commercial",
+      "Amazon Returns",
+      "23 Centenary Ave",
+      "P.O. Box 6025"
+    ],
+    "group_keys": [
+      "Parent_Courier"
+    ],
+    "sort_order": {
+      "Parent_Courier": "asc",
+      "Postcode": "asc"
+    },
+    "merge": {
+      "csv_rename": {
+        "Order ID": "PO #"
+      },
+      "merge_key": "PO #",
+      "merge_columns": [
+        "PO #",
+        "Invoice_Number"
+      ],
+      "merge_strategy": "outer",
+      "csv_state_column": "Ship To State",
+      "csv_postcode_column": "Ship To ZIP Code",
+      "state_normalize": {
+        "New South Wales": "NSW",
+        "Victoria": "VIC",
+        "Queensland": "QLD",
+        "South Australia": "SA",
+        "Western Australia": "WA",
+        "Tasmania": "TAS",
+        "Australian Capital Territory": "ACT",
+        "Northern Territory": "NT"
+      }
+    },
+    "neto_export": {
+      "copy_columns": {
+        "PO #": "Order ID"
+      },
+      "static_columns": {
+        "Username": "AmazonAU_DF",
+        "Sales Channel": "Amazon Vendor",
+        "Order Status": "New",
+        "Payment Method": "Amazon AU"
+      },
+      "drop_columns": [
+        "PDF File Name",
+        "Label_Qty",
+        "Single/Multi_Ctn",
+        "Parent_Courier",
+        "Logo_Text"
+      ],
+      "oms_preview": {
+        "order_mapping": {
+          "PO #": "PurchaseOrderNumber",
+          "Ship Method": "ShipStreet1",
+          "Order Place Date": "DatePlaced",
+          "Required Ship Date": "DateRequired"
+        },
+        "order_line_mapping": {
+          "SKU": "SKU",
+          "Item Quantity": "Quantity"
+        },
+        "order_defaults": {
+          "OrderType": "sales",
+          "OrderStatus": "New",
+          "OrderApproval": "True",
+          "PaymentMethod": "Amazon AU",
+          "Username": "AmazonAU_DF",
+          "SalesChannel": "Amazon Vendor",
+          "ShipState": "VIC",
+          "ShipPostCode": "3000",
+          "ShipCity": "Melbourne",
+          "ShipPhone": "0400000000"
+        },
+        "postcode_col": "Ship To ZIP Code",
+        "state_col": "Ship To State",
+        "po_col": "PO #",
+        "price_col": "Item Cost"
+      }
+    },
+    "order_mapping": {
+      "PO #": "PurchaseOrderNumber",
+      "Ship Method": "ShipStreet1",
+      "Order Place Date": "DatePlaced",
+      "Required Ship Date": "DateRequired"
+    },
+    "order_line_mapping": {
+      "SKU": "SKU",
+      "Item Quantity": "Quantity"
+    },
+    "courier_sort_order": [
+      "Amazon",
+      "Dragonfly",
+      "CODE Express",
+      "Australia Post",
+      "Parcel Point",
+      "Couriers Please"
+    ],
+    "courier_pin": {
+      "top": [],
+      "bottom": []
+    }
+  },
+  "shared": {
+    "stock_threshold": 5,
+    "au_states": [
+      "NSW",
+      "VIC",
+      "QLD",
+      "SA",
+      "WA",
+      "TAS",
+      "ACT",
+      "NT"
+    ],
+    "au_state_fullnames": {
+      "New South Wales": "NSW",
+      "Victoria": "VIC",
+      "Queensland": "QLD",
+      "South Australia": "SA",
+      "Western Australia": "WA",
+      "Tasmania": "TAS",
+      "Australian Capital Territory": "ACT",
+      "Northern Territory": "NT"
+    },
+    "extract_output": {
+      "file_pattern": "*.pdf",
+      "output_filename": "extract_{ts}.csv",
+      "timestamp_format": "%Y%m%d%H%M%S"
+    },
+    "merge_output": {
+      "output_filename": "merged_{ts}.csv",
+      "pdf_output_filename": "grouped_{ts}.pdf",
+      "timestamp_format": "%Y%m%d%H%M%S"
+    }
+  },
+  "oms": {
+    "endpoint": "",
+    "username": "",
+    "api_key": "",
+    "order_defaults": {
+      "OrderType": "sales",
+      "OrderStatus": "New",
+      "OrderApproval": "True",
+      "PaymentMethod": "Amazon AU",
+      "Username": "AmazonAU_DF",
+      "SalesChannel": "Amazon Vendor",
+      "ShipState": "VIC",
+      "ShipPostCode": "3000",
+      "ShipCity": "Melbourne",
+      "ShipPhone": "0400000000",
+      "InternalOrderNotes": ""
+    },
+    "user_groups": {
+      "1": {
+        "username": "crashrepairer",
+        "sales_channel": "eBay"
+      },
+      "2": {
+        "username": "mydeal",
+        "sales_channel": "Order Import"
+      },
+      "3": {
+        "username": "allbids",
+        "sales_channel": "Allbid"
+      },
+      "4": {
+        "username": "GraysOnline",
+        "sales_channel": "GraysOnline"
+      },
+      "6": {
+        "username": "1zcgjy2h7c9nc9v",
+        "sales_channel": "Amazon AU"
+      },
+      "8": {
+        "username": "kogan",
+        "sales_channel": "Kogan"
+      },
+      "9": {
+        "username": "mysales",
+        "sales_channel": "API"
+      },
+      "10": {
+        "username": "mistercold",
+        "sales_channel": "Petroo"
+      },
+      "11": {
+        "username": "crazysales",
+        "sales_channel": "Crazysales"
+      },
+      "12": {
+        "username": "allbids",
+        "sales_channel": "Allbid"
+      },
+      "13": {
+        "username": "wayfair",
+        "sales_channel": "WayFair"
+      },
+      "14": {
+        "username": "Groupon",
+        "sales_channel": "Order Import"
+      },
+      "16": {
+        "username": "UWINGARDEN",
+        "sales_channel": "Order Import"
+      },
+      "20": {
+        "username": "Bunnings",
+        "sales_channel": "Bunnings"
+      },
+      "21": {
+        "username": "AmazonAU_DF",
+        "sales_channel": "Amazon Vendor"
+      }
+    }
+  }
+}

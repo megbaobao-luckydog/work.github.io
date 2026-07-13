@@ -1,0 +1,11 @@
+services:
+  shipguard:
+    build: .
+    ports:
+      - "8080:8000"
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
