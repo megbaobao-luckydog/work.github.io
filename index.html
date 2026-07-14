@@ -1,43 +1,221 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shipping Prototype</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #000;
-      color: #fff;
-      font-family: -apple-system, "PingFang SC", "Segoe UI", sans-serif;
-    }
-    h1 { font-size: 3rem; margin-bottom: 0.5rem; }
-    p  { color: #aaa; margin-bottom: 2rem; }
-    a.btn {
-      display: inline-block;
-      padding: 14px 28px;
-      background: #fff;
-      color: #000;
-      text-decoration: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    a.btn:hover { background: #ddd; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刘晓铮 · 产品 / 数据分析作品集</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2EFE6;
+    --paper-2:#E9E4D6;
+    --ink:#2A241E;
+    --ink-soft:#6B6255;
+    --rose:#C1476B;
+    --sage:#7A9B6E;
+    --khaki:#C9A96E;
+    --teal:#3F6659;
+    --rule:#D9D1BE;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:#DCD6C4; color:var(--ink);
+    font-family:'Inter','PingFang SC',sans-serif;
+    display:flex; justify-content:center; padding:40px 16px;
+  }
+  .page{ width:100%; max-width:920px; background:var(--paper); padding:48px 50px 44px; box-shadow:0 30px 60px rgba(0,0,0,.2); }
+  .top{ display:flex; justify-content:space-between; align-items:flex-end; gap:20px; padding-bottom:20px; border-bottom:1px solid var(--rule); }
+  .top h1{ font-family:'Fraunces',serif; font-weight:600; font-size:34px; margin:0; letter-spacing:.02em; }
+  .top-line{ width:38px; height:3px; background:var(--rose); margin-top:12px; }
+  .top-contact{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft); }
+
+
+  h2.sec{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:#fff; background:var(--ink); display:inline-block; padding:6px 14px; border-radius:20px;
+    margin:44px 0 20px;
+  }
+
+  /* 作品集 */
+  .work-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .work-card{
+    background:var(--paper-2); border:1px solid var(--rule); border-left:3px solid var(--c,var(--teal));
+    border-radius:6px; padding:20px 20px 18px; display:flex; flex-direction:column;
+  }
+  .work-kicker{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--c,var(--teal)); margin-bottom:8px; }
+  .work-title{ font-family:'Fraunces',serif; font-size:19px; font-weight:600; margin:0 0 8px; }
+  .work-desc{ font-size:12.5px; color:var(--ink-soft); line-height:1.7; flex:1; margin:0 0 14px; }
+  .work-tags{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+  .tag{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--ink-soft); background:rgba(255,255,255,.6); border:1px solid var(--rule); padding:3px 8px; border-radius:20px; }
+  .work-links{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn{
+    display:inline-block; font-size:12px; font-weight:600; text-decoration:none;
+    background:var(--ink); color:#fff; padding:9px 16px; border-radius:6px; transition:background .2s;
+  }
+  .btn:hover{ background:#000; }
+  .btn.ghost{ background:transparent; color:var(--ink); border:1px solid var(--ink); }
+  .btn.ghost:hover{ background:var(--ink); color:#fff; }
+
+  .proj-links{ display:flex; gap:8px; flex-wrap:wrap; }
+  .proj-link{
+    display:inline-block; margin-top:12px; text-decoration:none;
+    font-size:12px; font-weight:600; color:var(--ink);
+    background:transparent; border:1px solid var(--ink);
+    padding:8px 15px; border-radius:6px; transition:background .2s, color .2s;
+  }
+  .proj-link:hover{ background:var(--ink); color:#fff; }
+
+  /* 经历 */
+  .item{ padding:16px 0; border-bottom:1px solid var(--rule); }
+  .item:last-child{ border-bottom:none; }
+  .item-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+  .item-title{ font-size:14px; font-weight:600; }
+  .item-title b{ font-family:'Fraunces',serif; font-size:15.5px; font-weight:600; }
+  .item-title span{ color:var(--ink-soft); font-weight:400; font-size:12.5px; }
+  .item-date{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap; }
+  ul.pts{ margin:6px 0 0; padding-left:18px; }
+  ul.pts li{ font-size:12.5px; color:var(--ink-soft); line-height:1.75; margin-bottom:4px; }
+  .note{ font-size:11.5px; color:var(--ink-soft); background:var(--paper-2); border-left:3px solid var(--khaki); padding:10px 14px; border-radius:4px; margin-top:10px; line-height:1.7; }
+
+  /* 技能 / 教育 */
+  .skill-wrap{ display:flex; flex-wrap:wrap; gap:7px; }
+  .chip{ font-size:12px; background:var(--ink); color:#fff; padding:7px 14px; border-radius:20px; }
+  .chip.soft{ background:var(--paper-2); color:var(--ink); border:1px solid var(--rule); }
+  table.edu{ width:100%; border-collapse:collapse; }
+  table.edu td{ padding:11px 0; border-bottom:1px solid var(--rule); font-size:13px; }
+  table.edu tr:last-child td{ border-bottom:none; }
+  table.edu td:first-child{ font-weight:600; }
+  table.edu td:last-child{ text-align:right; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap; }
+  table.edu td.mid{ color:var(--ink-soft); }
+
+  footer{ margin-top:48px; padding-top:18px; border-top:1px solid var(--rule); text-align:center; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-soft); }
+
+  @media(max-width:700px){
+    .page{ padding:36px 22px 30px; }
+    .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+    .top h1{ font-size:28px; }
+    table.edu td{ display:block; border:none; padding:2px 0; }
+    table.edu tr{ display:block; padding:11px 0; border-bottom:1px solid var(--rule); }
+    table.edu td:last-child{ text-align:left; }
+  }
+</style>
 </head>
 <body>
-  <h1>Shipping Prototype</h1>
-  <p>Demo</p>
-  <a class="btn"
-     href="https://github.com/megbaobao-luckydog/work.github.io/blob/main/shippinglabel-main/README.md">
-    查看项目说明 →
-</a>
+<div class="page">
+
+  <header class="top">
+    <div class="top-name">
+      <h1>刘晓铮</h1>
+      <div class="top-line"></div>
+    </div>
+    <div class="top-contact">微信 · C201001049</div>
+  </header>
+
+  <main class="main">
+
+  <h2 class="sec">Education · 教育背景</h2>
+  <table class="edu">
+    <tr><td>悉尼大学</td><td class="mid">数据与商业分析 · 商业硕士</td><td>2019.02 – 2021.02</td></tr>
+    <tr><td>诺丁汉大学</td><td class="mid">中英翻译与口译 · 文学硕士</td><td>2017.09 – 2018.12</td></tr>
+    <tr><td>吉林大学</td><td class="mid">英语 · 文学学士</td><td>2013.08 – 2017.07</td></tr>
+  </table>
+
+  <h2 class="sec">Experience · 工作经历</h2>
+
+  <div class="item">
+    <div class="item-head">
+      <div class="item-title"><b>Process Trade</b> <span>墨尔本 · 需求分析</span></div>
+      <div class="item-date">2025.09 – 至今</div>
+    </div>
+    <ul class="pts">
+      <li>使用 Claude Code + Python + Figma MCP 构建 AI 工具链，以单人 PM 身份完成设计、开发、部署全链路交付</li>
+      <li>设计并落地 B 端电商履约内部工具，覆盖库存校验、面单处理（双平台）、OMS 推单三大核心模块</li>
+      <li>设计并落地库存上传模块，将复杂判断留给运营，系统负责数据呈现与执行</li>
+      <li>上线后每日承接上百单处理，运营单人即可完成全日发货操作闭环</li>
+    </ul>
+    <a class="proj-link" href="https://github.com/megbaobao-luckydog/work.github.io/blob/main/shippinglabel-main/README.md" target="_blank" rel="noopener">查看项目 · Shipping Prototype →</a>
+  </div>
+
+  <div class="item">
+    <div class="item-head">
+      <div class="item-title"><b>Amazon</b> <span>远程项目 · 数据分析</span></div>
+      <div class="item-date">2025.02 – 2025.05</div>
+    </div>
+    <ul class="pts">
+      <li>用 RPA / 爬虫采集多平台商品与社媒数据，经 OCR、LLM 辅助清洗后做平台差异对比与品牌情感分析，定位高声量、高口碑品牌及问题单品</li>
+    </ul>
+  </div>
+
+  <div class="item">
+    <div class="item-head">
+      <div class="item-title"><b>Alibaba</b> <span>远程项目 · 数据分析</span></div>
+      <div class="item-date">2024.11 – 2025.02</div>
+    </div>
+    <ul class="pts">
+      <li>以 AARRR 模型完成用户行为分析，用 Neo4j 知识图谱挖掘四类促销策略，设计 ODS → DWD → DIM → DWS → ADS 数仓分层方案</li>
+    </ul>
+    <div class="note">该阶段使用的数据全部为竞赛数据或其他大规模公开数据集，集中练习生产环境中的各种应用。</div>
+    <a class="proj-link" href="./analytics.html">查看项目 · 数据分析实践合集 →</a>
+  </div>
+
+  <div class="item">
+    <div class="item-head">
+      <div class="item-title"><b>北京希风科技有限公司</b> <span>北京 · 产品经理</span></div>
+      <div class="item-date">2023.03 – 2023.09</div>
+    </div>
+    <ul class="pts">
+      <li>负责北美跨境电商后台与 WMS 等系统产品的需求分析与系统设计，面向 B 端用户跟进产品全生命周期——需求梳理、设计、开发、测试、上线，并协助海外业务同事完成系统交付、培训与指导</li>
+      <li>数据报表制作：基于数据仓库搭建销售业绩、用户分层、物流及网站表现等报表</li>
+      <li>日常与海外团队沟通进度、解答问题</li>
+    </ul>
+    <div class="proj-links">
+      <a class="proj-link" href="https://my.feishu.cn/file/Kplrbp1vcokcIwxhIuQc9PzDn7c" target="_blank" rel="noopener">查看原型图 →</a>
+      <a class="proj-link" href="https://megbaobao-luckydog.github.io/work.github.io/anonymous%20user%20manual.pptx.pdf" target="_blank" rel="noopener">查看 PPT →</a>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="item-head">
+      <div class="item-title"><b>Accenture</b> <span>Song 部门 · 上海 · 需求分析</span></div>
+      <div class="item-date">2021.07 – 2023.02</div>
+    </div>
+    <ul class="pts">
+      <li><b>全渠道电商平台：</b>参与 B2C 零售电商中台项目，梳理搜索推荐、活动管理、商品目录（含基础 product bundle 组合商品逻辑）等模块功能需求，负责微信商城与内容社区模块的页面结构设计</li>
+      <li>系统上线前发现客户原始数据与系统配置格式不匹配，主动牵头组织技术骨干完成批量数据转换，并将剩余非标准数据拆解分配给团队成员处理，确保按期完成全部数据装载</li>
+      <li><b>元宇宙（NFT）：</b>内部创新探索项目，参与搭建 NFT 生成、上链记录、交易等流程的技术 Demo，参与 Java、Solidity 后端代码编写</li>
+    </ul>
+    <a class="proj-link" href="https://github.com/Megbaobao/acc_eth_NFT" target="_blank" rel="noopener">NFT Demo · GitHub →</a>
+  </div>
+
+  <div class="item">
+    <div class="item-head">
+      <div class="item-title"><b>Sparro Digital Marketing</b> <span>悉尼 · 数据分析实习</span></div>
+      <div class="item-date">2020.09 – 2020.11</div>
+    </div>
+    <ul class="pts">
+      <li>完成客户聚类项目基础工作、电商网站爬虫与销售监控 Python 程序，以及基于时间序列模型的圣诞销售预测</li>
+    </ul>
+  </div>
+
+  <h2 class="sec">Skills · 技能</h2>
+  <div class="skill-wrap">
+    <span class="chip">Python</span>
+    <span class="chip">SQL</span>
+    <span class="chip">Tableau</span>
+    <span class="chip">Power BI</span>
+    <span class="chip">Axure</span>
+    <span class="chip">MockPlus RP</span>
+    <span class="chip">Xmind</span>
+    <span class="chip">MCP</span>
+    <span class="chip soft">电商 / OMS / WMS</span>
+    <span class="chip soft">区块链</span>
+    <span class="chip soft">机器（深度）学习</span>
+    <span class="chip soft">商业调研</span>
+    <span class="chip soft">IELTS 7.5</span>
+  </div>
+
+  </main>
+</div>
 </body>
 </html>
