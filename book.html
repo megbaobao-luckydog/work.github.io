@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🐨 JobKoala 手册 · 全本预览</title>
+<style>
+:root{
+  --bg:#DfE7F2; --bar:#FFFFFF; --line:#D7E0EE; --ink:#22304A; --ink2:#5A6B8C;
+  --blue:#2E6BE6; --blue-d:#1B3C8C; --sw:200px; --top:46px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",sans-serif}
+
+/* ── 顶部细条 ── */
+#top{position:fixed;inset:0 0 auto 0;height:var(--top);z-index:60;display:flex;align-items:center;gap:14px;
+  padding:0 14px;background:rgba(255,255,255,.92);backdrop-filter:saturate(1.6) blur(10px);
+  border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(20,40,90,.05)}
+#burger{border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;
+  width:30px;height:28px;font-size:14px;line-height:1;color:var(--ink2);flex:none}
+#burger:hover{border-color:var(--blue);color:var(--blue)}
+#brand{font-weight:800;font-size:15px;white-space:nowrap;letter-spacing:.01em}
+#chips{display:flex;gap:6px;margin-left:auto;flex-wrap:nowrap;overflow:auto;scrollbar-width:none}
+#chips::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:#fff;color:var(--ink2);border-radius:999px;
+  padding:4px 11px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.chip:hover{border-color:var(--blue);color:var(--blue)}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+#count{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--ink2);white-space:nowrap;flex:none}
+#count b{color:var(--blue-d);font-size:14px}
+#prog{position:fixed;top:var(--top);left:0;height:2px;width:0;background:var(--blue);z-index:61;transition:width .1s linear}
+
+/* ── 目录栏 ── */
+#side{position:fixed;top:var(--top);bottom:0;left:0;width:var(--sw);z-index:50;overflow-y:auto;overscroll-behavior:contain;
+  background:var(--bar);border-right:1px solid var(--line);padding:8px 0 40px;transition:transform .22s ease}
+#side::-webkit-scrollbar{width:7px}
+#side::-webkit-scrollbar-thumb{background:#C8D5E8;border-radius:4px}
+.toc-h{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--ink2);
+  padding:12px 12px 5px;text-transform:uppercase}
+.toc-i{display:block;padding:6px 12px;text-decoration:none;color:var(--ink);border-left:3px solid transparent}
+.toc-i:hover{background:#F2F6FC}
+.toc-i.on{background:#E9F0FE;border-left-color:var(--blue)}
+.toc-i.on .toc-n{color:var(--blue)}
+.toc-n{display:block;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.toc-n i{font-style:normal;color:var(--blue);margin-left:5px;font-size:11.5px}
+.toc-t{display:block;font-size:11px;color:var(--ink2);line-height:1.35;margin-top:1px;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+body.fold #side{transform:translateX(-100%)}
+
+/* ── 长卷 ── */
+#main{margin-left:var(--sw);padding:calc(var(--top) + 20px) 20px 60px;transition:margin-left .22s ease}
+body.fold #main{margin-left:0}
+.pg{margin:0 auto 24px;max-width:1560px;scroll-margin-top:calc(var(--top) + 12px)}
+.pg:last-child{margin-bottom:0}
+.pg-tag{display:flex;align-items:baseline;gap:9px;padding:0 4px 6px;font-size:11.5px;color:var(--ink2)}
+.pg-tag b{color:var(--blue-d);font-size:12px;font-variant-numeric:tabular-nums}
+.pg-tag span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 16:9 幻灯片框 —— PPT 原始比例，页页等高等宽 */
+.slide{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:var(--bg);
+  border-radius:14px;box-shadow:0 6px 22px rgba(20,40,90,.09)}
+.slide iframe{position:absolute;top:0;left:0;border:0;overflow:hidden;
+  background:var(--bg);transform-origin:0 0}
+.pg.hide{display:none}
+.toc-i.hide,.toc-h.hide{display:none}
+/* ── 章节折叠 ── */
+.toc-h{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.toc-h:hover{color:var(--blue)}
+.toc-h .ht{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toc-h .cv{width:0;height:0;flex:none;border-left:5px solid currentColor;
+  border-top:4px solid transparent;border-bottom:4px solid transparent;
+  transform:rotate(90deg);transition:transform .15s ease;opacity:.6}
+.toc-h.fold .cv{transform:rotate(0deg)}
+.toc-h .hc{flex:none;font-size:10px;font-weight:700;color:#9AA6C0;font-variant-numeric:tabular-nums}
+.toc-h.fold .hc{color:var(--blue)}
+.toc-i.foldhide{display:none}
+/* ── 拖拽排序 ── */
+.toc-i{cursor:grab}
+.toc-i.dragging{opacity:.4;cursor:grabbing}
+.toc-i.over-top{box-shadow:inset 0 2px 0 var(--blue)}
+.toc-i.over-bot{box-shadow:inset 0 -2px 0 var(--blue)}
+.toc-i.sel{outline:2px solid var(--blue);outline-offset:-2px;background:#E3EDFE}
+.toc-i{position:relative}
+.toc-x{position:absolute;right:5px;top:5px;width:18px;height:18px;border-radius:5px;border:0;
+  background:#EEF2F8;color:#8A93A3;font-size:12px;line-height:1;cursor:pointer;display:none;
+  align-items:center;justify-content:center;padding:0}
+.toc-i:hover .toc-x,.toc-i.sel .toc-x,.toc-i.gone .toc-x{display:flex}
+.toc-x:hover{background:#FDE7E7;color:#B03A3A}
+.toc-i.gone .toc-x{background:#FDE7E7;color:#B03A3A}
+.toc-i.ghost .toc-n:after{content:"副本";margin-left:6px;font-size:10px;font-weight:700;
+  color:#18A566;background:#E6F7EF;border:1px solid #BFE8D4;border-radius:4px;padding:0 4px}
+.toc-i.gone{opacity:.42}
+.toc-i.gone .toc-n{text-decoration:line-through}
+.toc-i.gone .toc-n:after{content:"待移出";margin-left:6px;font-size:10px;font-weight:700;
+  color:#B03A3A;background:#FDEEEE;border:1px solid #F3D2D2;border-radius:4px;padding:0 4px;
+  text-decoration:none}
+.pg.ghost .pg-tag b:after{content:" · 副本";color:#18A566}
+.pg.gone{opacity:.45}
+#dirty .hint{opacity:.7;font-size:11.5px}
+#dirty{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(150%);z-index:80;
+  display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:12px;background:#1B3C8C;
+  color:#fff;font-size:12.5px;box-shadow:0 10px 30px rgba(20,40,90,.3);transition:transform .2s ease}
+#dirty.on{transform:translateX(-50%) translateY(0)}
+#dirty b{font-variant-numeric:tabular-nums}
+#dirty button{border:0;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer}
+#dirty .go{background:#fff;color:#1B3C8C}
+#dirty .un{background:rgba(255,255,255,.16);color:#fff}
+#dirty .ok{color:#8FE3B0;font-weight:700}
+
+/* ── 缓存区（草稿页）── */
+.toc-i.draft .toc-n{color:#B4720E}
+.toc-i.draft.on{background:#FDF3E2;border-left-color:#E0A94A}
+.toc-i.draft.on .toc-n{color:#B4720E}
+.pg.draft .pg-tag b{color:#B4720E}
+.pg.draft .slide{outline:2px dashed #E0A94A;outline-offset:4px}
+.dbadge{font-style:normal;background:#FDF0D8;color:#B4720E;border:1px solid #F0DCB4;
+  border-radius:5px;padding:1px 7px;font-size:10px;font-weight:800;letter-spacing:.02em}
+.chip.draft.on{background:#B4720E;border-color:#B4720E}
+
+@media (max-width:820px){
+  :root{--sw:0px}
+  #side{width:200px;transform:translateX(-100%)}
+  body.open #side{transform:none}
+  #main{margin-left:0}
+}
+@media print{#top,#side,#prog,.pg-tag{display:none}#main{margin:0;padding:0}.pg{page-break-after:always}}
+</style>
+</head>
+<body>
+
+<div id="top">
+  <button id="burger" title="折叠 / 展开目录 (T)">☰</button>
+  <div id="brand">🐨 JobKoala 手册</div>
+  <div id="chips"></div>
+  <div id="count"><b>1</b> / 44</div>
+</div>
+<div id="prog"></div>
+
+<nav id="side"><div class="toc-h" data-ch="1" title="点击折叠 / 展开"><i class="cv"></i><span class="ht">第 1 章 · Overview</span><b class="hc"></b></div>
+<a class="toc-i" draggable="true" href="#p0" data-i="0" data-ch="1"><span class="toc-n">01<i>1.1</i></span><span class="toc-t">Product Brochure</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<div class="toc-h" data-ch="2" title="点击折叠 / 展开"><i class="cv"></i><span class="ht">第 2 章 · Job Seeker</span><b class="hc"></b></div>
+<a class="toc-i" draggable="true" href="#p1" data-i="1" data-ch="2"><span class="toc-n">02<i>2.1</i></span><span class="toc-t">What the Platform Gives a Job Seeker</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p2" data-i="2" data-ch="2"><span class="toc-n">03<i>2.2</i></span><span class="toc-t">Job Seeker — Information Architecture</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p3" data-i="3" data-ch="2"><span class="toc-n">04<i>2.3</i></span><span class="toc-t">Job List — Check the Company, Contact Them Directly</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p4" data-i="4" data-ch="2"><span class="toc-n">05<i>2.4</i></span><span class="toc-t">Visa Help — Free for New Users</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p5" data-i="5" data-ch="2"><span class="toc-n">06<i>2.5</i></span><span class="toc-t">Switch Mode — One Account, Two Apps</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p6" data-i="6" data-ch="2"><span class="toc-n">07<i>2.6</i></span><span class="toc-t">Resume — Publish Once, Let Employers Come to You</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p7" data-i="7" data-ch="2"><span class="toc-n">08<i>2.7</i></span><span class="toc-t">Notifications — What Reaches You, and How to Turn It Off</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p8" data-i="8" data-ch="2"><span class="toc-n">09<i>2.8</i></span><span class="toc-t">My — Your History, Favourites, Money and Settings</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<div class="toc-h" data-ch="3" title="点击折叠 / 展开"><i class="cv"></i><span class="ht">第 3 章 · Employer</span><b class="hc"></b></div>
+<a class="toc-i" draggable="true" href="#p9" data-i="9" data-ch="3"><span class="toc-n">10<i>3.1</i></span><span class="toc-t">What the Platform Gives an Employer</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p10" data-i="10" data-ch="3"><span class="toc-n">11<i>3.2</i></span><span class="toc-t">Employer — Information Architecture</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p11" data-i="11" data-ch="3"><span class="toc-n">12<i>3.3</i></span><span class="toc-t">Candidate List — Start to Hire</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p12" data-i="12" data-ch="3"><span class="toc-n">13<i>3.4</i></span><span class="toc-t">Post a Job — Verification, Post and Promotion</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p13" data-i="13" data-ch="3"><span class="toc-n">14<i>3.5</i></span><span class="toc-t">Employer Verification — Before you can Post</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p14" data-i="14" data-ch="3"><span class="toc-n">15<i>3.6</i></span><span class="toc-t">Post a Job — AI Writes It, You Publish in Seconds</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p15" data-i="15" data-ch="3"><span class="toc-n">16<i>3.7</i></span><span class="toc-t">Promote a Job to the Top — Free for Now, No End Date</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p16" data-i="16" data-ch="3"><span class="toc-n">17<i>3.8</i></span><span class="toc-t">Notifications — What Reaches You, and How to Turn It Off</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p17" data-i="17" data-ch="3"><span class="toc-n">18<i>3.9</i></span><span class="toc-t">My — Your History, Company Page, Money and Settings</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p18" data-i="18" data-ch="3"><span class="toc-n">19<i>3.10</i></span><span class="toc-t">Switch Mode — One Account, Two Apps</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<div class="toc-h" data-ch="4" title="点击折叠 / 展开"><i class="cv"></i><span class="ht">第 4 章 · Operations</span><b class="hc"></b></div>
+<a class="toc-i" draggable="true" href="#p19" data-i="19" data-ch="4"><span class="toc-n">20<i>4.1</i></span><span class="toc-t">What Operations Do in the Console</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p20" data-i="20" data-ch="4"><span class="toc-n">21<i>4.2</i></span><span class="toc-t">Operations Console — Module Map</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p21" data-i="21" data-ch="4"><span class="toc-n">22<i>4.4.1</i></span><span class="toc-t">1 Dashboard</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p22" data-i="22" data-ch="4"><span class="toc-n">23<i>4.4.2</i></span><span class="toc-t">2 Account Management</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p23" data-i="23" data-ch="4"><span class="toc-n">24<i>4.4.3</i></span><span class="toc-t">3 Roles &amp; Permissions</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p24" data-i="24" data-ch="4"><span class="toc-n">25<i>4.4.4</i></span><span class="toc-t">4 Basic Info</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p25" data-i="25" data-ch="4"><span class="toc-n">26<i>4.4.5</i></span><span class="toc-t">5 Logs</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p26" data-i="26" data-ch="4"><span class="toc-n">27<i>4.4.6</i></span><span class="toc-t">6 Regions</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p27" data-i="27" data-ch="4"><span class="toc-n">28<i>4.4.7</i></span><span class="toc-t">7 Education Types</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p28" data-i="28" data-ch="4"><span class="toc-n">29<i>4.5.1</i></span><span class="toc-t">1 Job List</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p29" data-i="29" data-ch="4"><span class="toc-n">30<i>4.5.2</i></span><span class="toc-t">2 Resume Management</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p30" data-i="30" data-ch="4"><span class="toc-n">31<i>4.5.3</i></span><span class="toc-t">3 Industries</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p31" data-i="31" data-ch="4"><span class="toc-n">32<i>4.6.1</i></span><span class="toc-t">1 User Management</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p32" data-i="32" data-ch="4"><span class="toc-n">33<i>4.7.1</i></span><span class="toc-t">1 Order List</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p33" data-i="33" data-ch="4"><span class="toc-n">34<i>4.8.1</i></span><span class="toc-t">1 How Promotion Plans Work</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p34" data-i="34" data-ch="4"><span class="toc-n">35<i>4.9.1</i></span><span class="toc-t">1 Home Banners</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p35" data-i="35" data-ch="4"><span class="toc-n">36<i>4.10.1</i></span><span class="toc-t">1 Comment Moderation</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p36" data-i="36" data-ch="4"><span class="toc-n">37<i>4.11.1</i></span><span class="toc-t">1 FAQ</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p37" data-i="37" data-ch="4"><span class="toc-n">38<i>4.11.2</i></span><span class="toc-t">2 Notification Templates</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p38" data-i="38" data-ch="4"><span class="toc-n">39<i>4.11.3</i></span><span class="toc-t">3 Privacy Policy</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p39" data-i="39" data-ch="4"><span class="toc-n">40<i>4.11.4</i></span><span class="toc-t">4 User Agreement</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p40" data-i="40" data-ch="4"><span class="toc-n">41<i>4.12.1</i></span><span class="toc-t">1 Form Templates</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p41" data-i="41" data-ch="4"><span class="toc-n">42<i>4.12.2</i></span><span class="toc-t">2 AI Config</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p42" data-i="42" data-ch="4"><span class="toc-n">43<i>4.13.1</i></span><span class="toc-t">1 Visa Consult – Content Management</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a>
+<a class="toc-i" draggable="true" href="#p43" data-i="43" data-ch="4"><span class="toc-n">44<i>4.13.2</i></span><span class="toc-t">2 Visa Consult — Agent Artwork and Sizes</span><button class="toc-x" title="删除这一页（可撤销）">✕</button></a></nav>
+<div id="dirty"><span>待应用 <b id="dn">0</b> 处</span><span class="hint" id="dhint">⌘C 复制 · ⌘V 粘贴 · ⌘D 原地复制 · ⌫ 删除</span><button class="go" id="dgo">复制应用命令</button><button class="un" id="dun">撤销</button><span class="ok" id="dok"></span></div>
+
+<main id="main">
+<section class="pg" id="p0" data-i="0" data-ch="1"><div class="pg-tag"><b>01-1.1</b><span>Product Brochure</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/01-1.1/index.html" title="01-1.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p1" data-i="1" data-ch="2"><div class="pg-tag"><b>02-2.1</b><span>What the Platform Gives a Job Seeker</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/02-2.1/index.html" title="02-2.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p2" data-i="2" data-ch="2"><div class="pg-tag"><b>03-2.2</b><span>Job Seeker — Information Architecture</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/03-2.2/index.html" title="03-2.2" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p3" data-i="3" data-ch="2"><div class="pg-tag"><b>04-2.3</b><span>Job List — Check the Company, Contact Them Directly</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/04-2.3/index.html" title="04-2.3" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p4" data-i="4" data-ch="2"><div class="pg-tag"><b>05-2.4</b><span>Visa Help — Free for New Users</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/05-2.4/index.html" title="05-2.4" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p5" data-i="5" data-ch="2"><div class="pg-tag"><b>06-2.5</b><span>Switch Mode — One Account, Two Apps</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/06-2.5/index.html" title="06-2.5" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p6" data-i="6" data-ch="2"><div class="pg-tag"><b>07-2.6</b><span>Resume — Publish Once, Let Employers Come to You</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/07-2.6/index.html" title="07-2.6" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p7" data-i="7" data-ch="2"><div class="pg-tag"><b>08-2.7</b><span>Notifications — What Reaches You, and How to Turn It Off</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/08-2.7/index.html" title="08-2.7" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p8" data-i="8" data-ch="2"><div class="pg-tag"><b>09-2.8</b><span>My — Your History, Favourites, Money and Settings</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/09-2.8/index.html" title="09-2.8" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p9" data-i="9" data-ch="3"><div class="pg-tag"><b>10-3.1</b><span>What the Platform Gives an Employer</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/10-3.1/index.html" title="10-3.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p10" data-i="10" data-ch="3"><div class="pg-tag"><b>11-3.2</b><span>Employer — Information Architecture</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/11-3.2/index.html" title="11-3.2" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p11" data-i="11" data-ch="3"><div class="pg-tag"><b>12-3.3</b><span>Candidate List — Start to Hire</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/12-3.3/index.html" title="12-3.3" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p12" data-i="12" data-ch="3"><div class="pg-tag"><b>13-3.4</b><span>Post a Job — Verification, Post and Promotion</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/13-3.4/index.html" title="13-3.4" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p13" data-i="13" data-ch="3"><div class="pg-tag"><b>14-3.5</b><span>Employer Verification — Before you can Post</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/14-3.5/index.html" title="14-3.5" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p14" data-i="14" data-ch="3"><div class="pg-tag"><b>15-3.6</b><span>Post a Job — AI Writes It, You Publish in Seconds</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/15-3.6/index.html" title="15-3.6" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p15" data-i="15" data-ch="3"><div class="pg-tag"><b>16-3.7</b><span>Promote a Job to the Top — Free for Now, No End Date</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/16-3.7/index.html" title="16-3.7" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p16" data-i="16" data-ch="3"><div class="pg-tag"><b>17-3.8</b><span>Notifications — What Reaches You, and How to Turn It Off</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/17-3.8/index.html" title="17-3.8" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p17" data-i="17" data-ch="3"><div class="pg-tag"><b>18-3.9</b><span>My — Your History, Company Page, Money and Settings</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/18-3.9/index.html" title="18-3.9" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p18" data-i="18" data-ch="3"><div class="pg-tag"><b>19-3.10</b><span>Switch Mode — One Account, Two Apps</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/19-3.10/index.html" title="19-3.10" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p19" data-i="19" data-ch="4"><div class="pg-tag"><b>20-4.1</b><span>What Operations Do in the Console</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/20-4.1/index.html" title="20-4.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p20" data-i="20" data-ch="4"><div class="pg-tag"><b>21-4.2</b><span>Operations Console — Module Map</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/21-4.2/index.html" title="21-4.2" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p21" data-i="21" data-ch="4"><div class="pg-tag"><b>22-4.4.1</b><span>1 Dashboard</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/22-4.4.1/index.html" title="22-4.4.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p22" data-i="22" data-ch="4"><div class="pg-tag"><b>23-4.4.2</b><span>2 Account Management</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/23-4.4.2/index.html" title="23-4.4.2" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p23" data-i="23" data-ch="4"><div class="pg-tag"><b>24-4.4.3</b><span>3 Roles &amp; Permissions</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/24-4.4.3/index.html" title="24-4.4.3" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p24" data-i="24" data-ch="4"><div class="pg-tag"><b>25-4.4.4</b><span>4 Basic Info</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/25-4.4.4/index.html" title="25-4.4.4" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p25" data-i="25" data-ch="4"><div class="pg-tag"><b>26-4.4.5</b><span>5 Logs</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/26-4.4.5/index.html" title="26-4.4.5" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p26" data-i="26" data-ch="4"><div class="pg-tag"><b>27-4.4.6</b><span>6 Regions</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/27-4.4.6/index.html" title="27-4.4.6" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p27" data-i="27" data-ch="4"><div class="pg-tag"><b>28-4.4.7</b><span>7 Education Types</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/28-4.4.7/index.html" title="28-4.4.7" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p28" data-i="28" data-ch="4"><div class="pg-tag"><b>29-4.5.1</b><span>1 Job List</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/29-4.5.1/index.html" title="29-4.5.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p29" data-i="29" data-ch="4"><div class="pg-tag"><b>30-4.5.2</b><span>2 Resume Management</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/30-4.5.2/index.html" title="30-4.5.2" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p30" data-i="30" data-ch="4"><div class="pg-tag"><b>31-4.5.3</b><span>3 Industries</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/31-4.5.3/index.html" title="31-4.5.3" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p31" data-i="31" data-ch="4"><div class="pg-tag"><b>32-4.6.1</b><span>1 User Management</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/32-4.6.1/index.html" title="32-4.6.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p32" data-i="32" data-ch="4"><div class="pg-tag"><b>33-4.7.1</b><span>1 Order List</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/33-4.7.1/index.html" title="33-4.7.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p33" data-i="33" data-ch="4"><div class="pg-tag"><b>34-4.8.1</b><span>1 How Promotion Plans Work</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/34-4.8.1/index.html" title="34-4.8.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p34" data-i="34" data-ch="4"><div class="pg-tag"><b>35-4.9.1</b><span>1 Home Banners</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/35-4.9.1/index.html" title="35-4.9.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p35" data-i="35" data-ch="4"><div class="pg-tag"><b>36-4.10.1</b><span>1 Comment Moderation</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/36-4.10.1/index.html" title="36-4.10.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p36" data-i="36" data-ch="4"><div class="pg-tag"><b>37-4.11.1</b><span>1 FAQ</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/37-4.11.1/index.html" title="37-4.11.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p37" data-i="37" data-ch="4"><div class="pg-tag"><b>38-4.11.2</b><span>2 Notification Templates</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/38-4.11.2/index.html" title="38-4.11.2" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p38" data-i="38" data-ch="4"><div class="pg-tag"><b>39-4.11.3</b><span>3 Privacy Policy</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/39-4.11.3/index.html" title="39-4.11.3" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p39" data-i="39" data-ch="4"><div class="pg-tag"><b>40-4.11.4</b><span>4 User Agreement</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/40-4.11.4/index.html" title="40-4.11.4" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p40" data-i="40" data-ch="4"><div class="pg-tag"><b>41-4.12.1</b><span>1 Form Templates</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/41-4.12.1/index.html" title="41-4.12.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p41" data-i="41" data-ch="4"><div class="pg-tag"><b>42-4.12.2</b><span>2 AI Config</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/42-4.12.2/index.html" title="42-4.12.2" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p42" data-i="42" data-ch="4"><div class="pg-tag"><b>43-4.13.1</b><span>1 Visa Consult – Content Management</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/43-4.13.1/index.html" title="43-4.13.1" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+<section class="pg" id="p43" data-i="43" data-ch="4"><div class="pg-tag"><b>44-4.13.2</b><span>2 Visa Consult — Agent Artwork and Sizes</span></div><div class="slide"><iframe data-src="./JobKoala%E6%89%8B%E5%86%8C-HTML/44-4.13.2/index.html" title="44-4.13.2" scrolling="no" loading="lazy" style="width:1360px;height:765px"></iframe></div></section>
+</main>
+
+<script>
+const DATA = {"basedir":"/Users/mac/Desktop/job koala -en","draftCh":9,"logical":1556,"rw":16,"rh":9,"chapters":{"1":"Overview","2":"Job Seeker","3":"Employer","4":"Operations"},"pages":[{"d":"01-1.1","n":"01","tag":"1.1","ch":1,"t":"Product Brochure","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/01-1.1/index.html","w":1360,"h":765,"draft":false},{"d":"02-2.1","n":"02","tag":"2.1","ch":2,"t":"What the Platform Gives a Job Seeker","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/02-2.1/index.html","w":1360,"h":765,"draft":false},{"d":"03-2.2","n":"03","tag":"2.2","ch":2,"t":"Job Seeker — Information Architecture","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/03-2.2/index.html","w":1360,"h":765,"draft":false},{"d":"04-2.3","n":"04","tag":"2.3","ch":2,"t":"Job List — Check the Company, Contact Them Directly","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/04-2.3/index.html","w":1360,"h":765,"draft":false},{"d":"05-2.4","n":"05","tag":"2.4","ch":2,"t":"Visa Help — Free for New Users","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/05-2.4/index.html","w":1360,"h":765,"draft":false},{"d":"06-2.5","n":"06","tag":"2.5","ch":2,"t":"Switch Mode — One Account, Two Apps","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/06-2.5/index.html","w":1360,"h":765,"draft":false},{"d":"07-2.6","n":"07","tag":"2.6","ch":2,"t":"Resume — Publish Once, Let Employers Come to You","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/07-2.6/index.html","w":1360,"h":765,"draft":false},{"d":"08-2.7","n":"08","tag":"2.7","ch":2,"t":"Notifications — What Reaches You, and How to Turn It Off","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/08-2.7/index.html","w":1360,"h":765,"draft":false},{"d":"09-2.8","n":"09","tag":"2.8","ch":2,"t":"My — Your History, Favourites, Money and Settings","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/09-2.8/index.html","w":1360,"h":765,"draft":false},{"d":"10-3.1","n":"10","tag":"3.1","ch":3,"t":"What the Platform Gives an Employer","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/10-3.1/index.html","w":1360,"h":765,"draft":false},{"d":"11-3.2","n":"11","tag":"3.2","ch":3,"t":"Employer — Information Architecture","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/11-3.2/index.html","w":1360,"h":765,"draft":false},{"d":"12-3.3","n":"12","tag":"3.3","ch":3,"t":"Candidate List — Start to Hire","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/12-3.3/index.html","w":1360,"h":765,"draft":false},{"d":"13-3.4","n":"13","tag":"3.4","ch":3,"t":"Post a Job — Verification, Post and Promotion","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/13-3.4/index.html","w":1360,"h":765,"draft":false},{"d":"14-3.5","n":"14","tag":"3.5","ch":3,"t":"Employer Verification — Before you can Post","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/14-3.5/index.html","w":1360,"h":765,"draft":false},{"d":"15-3.6","n":"15","tag":"3.6","ch":3,"t":"Post a Job — AI Writes It, You Publish in Seconds","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/15-3.6/index.html","w":1360,"h":765,"draft":false},{"d":"16-3.7","n":"16","tag":"3.7","ch":3,"t":"Promote a Job to the Top — Free for Now, No End Date","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/16-3.7/index.html","w":1360,"h":765,"draft":false},{"d":"17-3.8","n":"17","tag":"3.8","ch":3,"t":"Notifications — What Reaches You, and How to Turn It Off","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/17-3.8/index.html","w":1360,"h":765,"draft":false},{"d":"18-3.9","n":"18","tag":"3.9","ch":3,"t":"My — Your History, Company Page, Money and Settings","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/18-3.9/index.html","w":1360,"h":765,"draft":false},{"d":"19-3.10","n":"19","tag":"3.10","ch":3,"t":"Switch Mode — One Account, Two Apps","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/19-3.10/index.html","w":1360,"h":765,"draft":false},{"d":"20-4.1","n":"20","tag":"4.1","ch":4,"t":"What Operations Do in the Console","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/20-4.1/index.html","w":1360,"h":765,"draft":false},{"d":"21-4.2","n":"21","tag":"4.2","ch":4,"t":"Operations Console — Module Map","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/21-4.2/index.html","w":1360,"h":765,"draft":false},{"d":"22-4.4.1","n":"22","tag":"4.4.1","ch":4,"t":"1 Dashboard","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/22-4.4.1/index.html","w":1360,"h":765,"draft":false},{"d":"23-4.4.2","n":"23","tag":"4.4.2","ch":4,"t":"2 Account Management","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/23-4.4.2/index.html","w":1360,"h":765,"draft":false},{"d":"24-4.4.3","n":"24","tag":"4.4.3","ch":4,"t":"3 Roles & Permissions","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/24-4.4.3/index.html","w":1360,"h":765,"draft":false},{"d":"25-4.4.4","n":"25","tag":"4.4.4","ch":4,"t":"4 Basic Info","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/25-4.4.4/index.html","w":1360,"h":765,"draft":false},{"d":"26-4.4.5","n":"26","tag":"4.4.5","ch":4,"t":"5 Logs","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/26-4.4.5/index.html","w":1360,"h":765,"draft":false},{"d":"27-4.4.6","n":"27","tag":"4.4.6","ch":4,"t":"6 Regions","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/27-4.4.6/index.html","w":1360,"h":765,"draft":false},{"d":"28-4.4.7","n":"28","tag":"4.4.7","ch":4,"t":"7 Education Types","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/28-4.4.7/index.html","w":1360,"h":765,"draft":false},{"d":"29-4.5.1","n":"29","tag":"4.5.1","ch":4,"t":"1 Job List","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/29-4.5.1/index.html","w":1360,"h":765,"draft":false},{"d":"30-4.5.2","n":"30","tag":"4.5.2","ch":4,"t":"2 Resume Management","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/30-4.5.2/index.html","w":1360,"h":765,"draft":false},{"d":"31-4.5.3","n":"31","tag":"4.5.3","ch":4,"t":"3 Industries","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/31-4.5.3/index.html","w":1360,"h":765,"draft":false},{"d":"32-4.6.1","n":"32","tag":"4.6.1","ch":4,"t":"1 User Management","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/32-4.6.1/index.html","w":1360,"h":765,"draft":false},{"d":"33-4.7.1","n":"33","tag":"4.7.1","ch":4,"t":"1 Order List","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/33-4.7.1/index.html","w":1360,"h":765,"draft":false},{"d":"34-4.8.1","n":"34","tag":"4.8.1","ch":4,"t":"1 How Promotion Plans Work","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/34-4.8.1/index.html","w":1360,"h":765,"draft":false},{"d":"35-4.9.1","n":"35","tag":"4.9.1","ch":4,"t":"1 Home Banners","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/35-4.9.1/index.html","w":1360,"h":765,"draft":false},{"d":"36-4.10.1","n":"36","tag":"4.10.1","ch":4,"t":"1 Comment Moderation","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/36-4.10.1/index.html","w":1360,"h":765,"draft":false},{"d":"37-4.11.1","n":"37","tag":"4.11.1","ch":4,"t":"1 FAQ","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/37-4.11.1/index.html","w":1360,"h":765,"draft":false},{"d":"38-4.11.2","n":"38","tag":"4.11.2","ch":4,"t":"2 Notification Templates","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/38-4.11.2/index.html","w":1360,"h":765,"draft":false},{"d":"39-4.11.3","n":"39","tag":"4.11.3","ch":4,"t":"3 Privacy Policy","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/39-4.11.3/index.html","w":1360,"h":765,"draft":false},{"d":"40-4.11.4","n":"40","tag":"4.11.4","ch":4,"t":"4 User Agreement","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/40-4.11.4/index.html","w":1360,"h":765,"draft":false},{"d":"41-4.12.1","n":"41","tag":"4.12.1","ch":4,"t":"1 Form Templates","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/41-4.12.1/index.html","w":1360,"h":765,"draft":false},{"d":"42-4.12.2","n":"42","tag":"4.12.2","ch":4,"t":"2 AI Config","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/42-4.12.2/index.html","w":1360,"h":765,"draft":false},{"d":"43-4.13.1","n":"43","tag":"4.13.1","ch":4,"t":"1 Visa Consult – Content Management","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/43-4.13.1/index.html","w":1360,"h":765,"draft":false},{"d":"44-4.13.2","n":"44","tag":"4.13.2","ch":4,"t":"2 Visa Consult — Agent Artwork and Sizes","src":"./JobKoala%E6%89%8B%E5%86%8C-HTML/44-4.13.2/index.html","w":1360,"h":765,"draft":false}]};
+const BASEDIR = DATA.basedir || "";
+const DRAFT_CH = DATA.draftCh || 9;
+const PAGES = DATA.pages, LOGICAL = DATA.logical, RW = DATA.rw, RH = DATA.rh;
+const secs  = [...document.querySelectorAll('.pg')];
+const items = [...document.querySelectorAll('.toc-i')];
+const heads = [...document.querySelectorAll('.toc-h')];
+const countEl = document.getElementById('count');
+let chapter = 0, active = 0;
+
+/* ── 每页塞进 16:9 幻灯片框：按逻辑宽度渲染后整体缩放，居中，长边贴边、短边留白 ──
+   高度由 CSS aspect-ratio 决定，不依赖读取 iframe 内容 —— file:// 与 http 表现一致。
+   页面内容真实高度改变后请重跑 gen_book.py 刷新。 */
+function probe(fr){
+  try{
+    const d = fr.contentDocument;
+    if(!d || !d.body) return 0;
+    const cs = getComputedStyle(d.body), r = d.body.getBoundingClientRect();
+    const h = Math.ceil(r.height + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom));
+    return h > 40 ? h : 0;
+  }catch(e){ return 0; }
+}
+function fit(sec){
+  const box = sec.querySelector('.slide'), fr = sec.querySelector('iframe');
+  const bw = box.clientWidth, bh = box.clientHeight;
+  if(!bw || !bh) return;
+  const P = PAGES[+sec.dataset.i];
+  const w = P.w || LOGICAL;
+  let h = +fr.dataset.h || P.h;
+  if(fr.dataset.loaded){                       // http 下能读到真高度就用真的
+    const real = probe(fr);
+    if(real){ h = real; fr.dataset.h = real; fr.style.height = real + 'px'; }
+  }
+  const s = Math.min(bw / w, bh / h);
+  const tx = (bw - w * s) / 2, ty = (bh - h * s) / 2;
+  fr.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+}
+function layout(){ secs.forEach(s => { if(!s.classList.contains('hide')) fit(s); }); }
+
+/* ── 懒加载 ── */
+const loader = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if(!e.isIntersecting) return;
+    const fr = e.target.querySelector('iframe');
+    if(!fr.src){
+      fr.addEventListener('load', () => { fr.dataset.loaded = '1'; fit(e.target); }, {once:true});
+      fr.src = fr.dataset.src;
+    }
+    loader.unobserve(e.target);
+  });
+}, {rootMargin:'1400px 0px'});
+secs.forEach(s => { fit(s); loader.observe(s); });
+
+/* ── 当前页高亮 ── */
+const seen = new Set();
+const spy = new IntersectionObserver(es => {
+  es.forEach(e => e.isIntersecting ? seen.add(+e.target.dataset.i) : seen.delete(+e.target.dataset.i));
+  if(seen.size) setActive(Math.min(...seen));
+}, {rootMargin:'-56px 0px -68% 0px'});
+secs.forEach(s => spy.observe(s));
+
+function setActive(i){
+  if(i === active) return;
+  active = i;
+  items.forEach(a => a.classList.toggle('on', +a.dataset.i === i));
+  const on = items.find(a => +a.dataset.i === i);
+  if(on){
+    const sr = document.getElementById('side').getBoundingClientRect(), r = on.getBoundingClientRect();
+    if(r.top < sr.top + 8 || r.bottom > sr.bottom - 8) on.scrollIntoView({block:'nearest'});
+  }
+  const vis = visible();
+  countEl.innerHTML = '<b>' + (vis.indexOf(i) + 1 || 1) + '</b> / ' + vis.length;
+}
+const visible = () => secs.filter(s => !s.classList.contains('hide')).map(s => +s.dataset.i);
+
+/* ── 跳转 / 键盘 ── */
+function goto(i){
+  const s = secs.find(x => +x.dataset.i === i);
+  if(!s) return;
+  const y = s.getBoundingClientRect().top + window.scrollY - 58;
+  window.scrollTo({top:Math.max(0,y), behavior:'smooth'});
+  setActive(i);
+}
+items.forEach(a => a.addEventListener('click', e => { e.preventDefault(); goto(+a.dataset.i); }));
+addEventListener('keydown', e => {
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target.tagName;
+  if(t === 'INPUT' || t === 'TEXTAREA' || e.target.isContentEditable) return;
+  const vis = visible(), k = vis.indexOf(active);
+  if(e.key === 'ArrowRight' || e.key === 'ArrowDown' && e.shiftKey){ e.preventDefault(); goto(vis[Math.min(k+1, vis.length-1)]); }
+  else if(e.key === 'ArrowLeft' || e.key === 'ArrowUp' && e.shiftKey){ e.preventDefault(); goto(vis[Math.max(k-1, 0)]); }
+  else if(e.key === 'Home'){ e.preventDefault(); goto(vis[0]); }
+  else if(e.key === 'End'){ e.preventDefault(); goto(vis[vis.length-1]); }
+  else if(e.key === 't' || e.key === 'T'){ toggleSide(); }
+});
+
+/* ── 章节折叠：按目录里的实际分组算，拖动过也不会错位 ── */
+/* ── 页面内的超链接：让长卷滚过去，而不是在 iframe 里跳走 ── */
+addEventListener('message', e => {
+  const d = e.data;
+  if(!d || d.jk !== 'goto' || !d.dir) return;
+  const i = PAGES.findIndex(p => p.d === d.dir);
+  if(i >= 0){ goto(i); }
+});
+
+const FOLD_KEY = 'jk_fold_v1';
+let folded = {};
+try{ folded = JSON.parse(localStorage.getItem(FOLD_KEY) || '{}'); }catch(e){ folded = {}; }
+
+function applyFold(){
+  const sideEl = document.getElementById('side');
+  let cur = null, n = 0;
+  const flush = () => { if(cur) cur.querySelector('.hc').textContent = n; };
+  [...sideEl.children].forEach(el => {
+    if(el.classList.contains('toc-h')){
+      flush(); cur = el; n = 0;
+      el.classList.toggle('fold', !!folded[el.dataset.ch]);
+    } else if(el.classList.contains('toc-i')){
+      n++;
+      el.classList.toggle('foldhide', !!(cur && folded[cur.dataset.ch]));
+    }
+  });
+  flush();
+}
+document.getElementById('side').addEventListener('click', e => {
+  const h = e.target.closest('.toc-h'); if(!h) return;
+  e.preventDefault();
+  folded[h.dataset.ch] = !folded[h.dataset.ch];
+  try{ localStorage.setItem(FOLD_KEY, JSON.stringify(folded)); }catch(_){}
+  applyFold();
+});
+
+/* ── 拖拽排序：拖目录项改顺序，缓存区的也能拖进正文 ── */
+const side = document.getElementById('side');
+const dbar = document.getElementById('dirty'), dn = document.getElementById('dn'), dok = document.getElementById('dok');
+const baseOrder = items.map(a => +a.dataset.i);
+let dragEl = null;
+
+const tocList = () => [...side.querySelectorAll('.toc-i')];
+function moved(){
+  const L = tocList();
+  const extra = L.filter(a => a.classList.contains('ghost') || a.classList.contains('gone')).length;
+  const cur = L.filter(a => !a.classList.contains('ghost')).map(a => +a.dataset.i);
+  const ord = cur.reduce((n, v, k) => n + (v === baseOrder[k] ? 0 : 1), 0);
+  return ord + extra;
+}
+/* 磁盘指纹只认正文页：缓存区进出草稿不再冲掉没落盘的排序 */
+const PLAN_SIG = PAGES.filter(p => !p.draft).map(p => p.d).join('|');
+const PLAN_KEY = 'jk_plan_v1';
+const dirOf = a => (PAGES[+a.dataset.i] || {}).d || null;
+function planState(){
+  const out = [];
+  [...side.children].forEach(el => {
+    if(el.classList.contains('toc-h')) out.push({t:'h', ch:+el.dataset.ch});
+    else if(el.classList.contains('toc-i')){
+      const gone = el.classList.contains('gone');
+      /* 记页夹名而不是下标：下标会随缓存区增删整体挪位，页夹名不会 */
+      if(el.classList.contains('ghost')) out.push({t:'g', from:+el.dataset.from, src:el.dataset.src, gone});
+      else out.push({t:'i', i:+el.dataset.i, d:dirOf(el), gone});
+    }
+  });
+  return out;
+}
+function savePlan(){
+  try{
+    const st = planState();
+    if(!moved()) localStorage.removeItem(PLAN_KEY);
+    else localStorage.setItem(PLAN_KEY, JSON.stringify({sig:PLAN_SIG, st}));
+  }catch(e){}
+}
+function restorePlan(){
+  let raw;
+  try{ raw = localStorage.getItem(PLAN_KEY); }catch(e){ return; }
+  if(!raw) return;
+  let data;
+  try{ data = JSON.parse(raw); }catch(e){ return; }
+  /* 老格式的指纹是「正文页|缓存页」，前缀对上就还认 */
+  const ok = data && (data.sig === PLAN_SIG || (data.sig || '').indexOf(PLAN_SIG + '|') === 0);
+  if(!ok){                                     // 正文页变了（已落盘）→ 丢弃旧草稿
+    try{ localStorage.removeItem(PLAN_KEY); }catch(e){}
+    return;
+  }
+  /* 先记下自然顺序里每一项的前一个元素：计划没提到的新页照原位插回，不会被顶到最前面 */
+  const prevOf = new Map(); let last = null;
+  [...side.children].forEach(el => { prevOf.set(el, last); last = el; });
+  const placed = new Set();
+
+  data.st.forEach(e => {
+    if(e.t === 'h'){
+      const h = heads.find(x => +x.dataset.ch === e.ch);
+      if(h){ side.appendChild(h); placed.add(h); }
+    } else if(e.t === 'i'){
+      const a = (e.d && items.find(x => dirOf(x) === e.d)) || items.find(x => +x.dataset.i === e.i);
+      if(a && !placed.has(a)){
+             side.appendChild(a); placed.add(a); a.classList.toggle('gone', !!e.gone);
+             const sec = secs.find(x => +x.dataset.i === +a.dataset.i);
+             if(sec) sec.classList.toggle('gone', !!e.gone); }
+    } else {
+      let fi = e.from;
+      if(e.src){ const s = items.find(x => dirOf(x) === e.src); if(s) fi = +s.dataset.i; }
+      const a = mkGhost(fi);
+      if(a){ side.appendChild(a); placed.add(a); if(e.gone) a.classList.add('gone'); }
+    }
+  });
+  [...prevOf.keys()].forEach(el => {
+    if(placed.has(el)) return;
+    const p = prevOf.get(el);
+    if(p && p.parentNode === side) side.insertBefore(el, p.nextSibling);
+    else side.insertBefore(el, side.firstChild);
+  });
+  syncSections(); applyFold();
+  const n = moved();
+  dn.textContent = n; dbar.classList.toggle('on', n > 0);
+  if(n) dok.textContent = '已恢复上次未应用的改动';
+  layout();
+}
+function mark(){
+  const n = moved();
+  dn.textContent = n; dok.textContent = '';
+  dbar.classList.toggle('on', n > 0);
+  savePlan();
+}
+function syncSections(){
+  const main = document.getElementById('main');
+  tocList().forEach(a => {
+    const sec = secs.find(s => +s.dataset.i === +a.dataset.i);
+    if(sec) main.appendChild(sec);
+  });
+}
+/* 把拖动项插到指针所在位置；拖到侧栏上下边缘会自动滚动，长目录也能一路拖过去 */
+function placeAt(x, y){
+  if(!dragEl) return;
+  const el = document.elementFromPoint(x, y);
+  const a = el && el.closest ? el.closest('.toc-i') : null;
+  if(!a || a === dragEl) return;
+  const r = a.getBoundingClientRect(), after = (y - r.top) > r.height / 2;
+  tocList().forEach(t => t.classList.remove('over-top','over-bot'));
+  a.classList.add(after ? 'over-bot' : 'over-top');
+  a.parentNode.insertBefore(dragEl, after ? a.nextSibling : a);
+}
+
+let autoRaf = null, ptX = 0, ptY = 0;
+const EDGE = 88, SPEED = 34;
+function autoScroll(){
+  if(!dragEl){ autoRaf = null; return; }
+  const r = side.getBoundingClientRect();
+  let dy = 0;
+  if(ptY < r.top + EDGE)         dy = -SPEED * Math.min(1, (r.top + EDGE - ptY) / EDGE);
+  else if(ptY > r.bottom - EDGE) dy =  SPEED * Math.min(1, (ptY - r.bottom + EDGE) / EDGE);
+  if(dy){
+    const before = side.scrollTop;
+    side.scrollTop += dy;
+    if(side.scrollTop !== before) placeAt(ptX, ptY);   // 滚动后重新判断落点
+  }
+  autoRaf = requestAnimationFrame(autoScroll);
+}
+function stopAuto(){ if(autoRaf){ cancelAnimationFrame(autoRaf); autoRaf = null; } }
+
+side.addEventListener('dragstart', e => {
+  const a = e.target.closest('.toc-i'); if(!a) return;
+  dragEl = a; a.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  try{ e.dataTransfer.setData('text/plain', a.dataset.i); }catch(_){}
+  ptX = e.clientX; ptY = e.clientY;
+  if(!autoRaf) autoRaf = requestAnimationFrame(autoScroll);
+});
+side.addEventListener('dragend', () => {
+  stopAuto();
+  if(dragEl) dragEl.classList.remove('dragging');
+  tocList().forEach(x => x.classList.remove('over-top','over-bot'));
+  dragEl = null; syncSections(); mark(); applyFold(); layout();
+});
+side.addEventListener('dragover', e => {
+  if(!dragEl) return;
+  e.preventDefault();                     // 整个侧栏都是有效落区，边缘空白处也能悬停滚动
+  e.dataTransfer.dropEffect = 'move';
+  ptX = e.clientX; ptY = e.clientY;
+  placeAt(ptX, ptY);
+});
+side.addEventListener('drop', e => { e.preventDefault(); stopAuto(); });
+addEventListener('dragend', stopAuto);
+
+document.getElementById('dun').addEventListener('click', () => {
+  side.querySelectorAll('.toc-i.ghost').forEach(a => a.remove());      // 撤掉所有副本
+  document.querySelectorAll('.pg.ghost').forEach(sec => sec.remove());
+  side.querySelectorAll('.toc-i.gone').forEach(a => a.classList.remove('gone'));
+  document.querySelectorAll('.pg.gone').forEach(sec => sec.classList.remove('gone'));
+  cpSel = null; cpClip = null;
+  baseOrder.forEach(i => {
+    const a = items.find(x => +x.dataset.i === i);
+    if(a) side.appendChild(a);
+  });
+  heads.forEach(h => {
+    const first = tocList().find(a => +a.dataset.ch === +h.dataset.ch);
+    if(first) side.insertBefore(h, first);
+  });
+  syncSections(); mark(); layout();
+  try{ localStorage.removeItem(PLAN_KEY); }catch(e){}
+});
+const ONLINE = location.protocol === 'http:' || location.protocol === 'https:';
+if(ONLINE){
+  const h = document.getElementById('dhint');
+  if(h) h.textContent = '⌘C 复制 · ⌘V 粘贴 · ⌘D 原地复制 · ⌫ 删除 · 点右侧直接落盘';
+  const go = document.getElementById('dgo');
+  go.textContent = '应用到磁盘';
+  go.title = '直接改磁盘并刷新';
+}
+document.getElementById('dgo').addEventListener('click', () => {
+  // 按目录里的实际分组判断归属：缓存区标题之后的算草稿，之前的算正文
+  const keep = [], drop = [], toDraft = [];
+  let inDrafts = false;
+  [...side.children].forEach(el => {
+    if(el.classList.contains('toc-h')){ inDrafts = (+el.dataset.ch === DRAFT_CH); return; }
+    if(!el.classList.contains('toc-i')) return;
+    const f = cpFolder(el), isDraftFile = f.indexOf('_drafts/') === 0;
+    if(el.classList.contains('gone')){ drop.push('-' + f); return; }
+    if(inDrafts){
+      if(!isDraftFile) toDraft.push('~' + f);      // 正文页被拖进缓存区
+      return;                                       // 仍在缓存区的草稿：不参与计划
+    }
+    keep.push((el.classList.contains('ghost') ? '+' : '') + f);
+  });
+  const plan = keep.concat(toDraft, drop).join(',');
+
+  if(ONLINE){                                   // 有本地服务：直接落盘
+    dok.textContent = '正在应用…';
+    fetch('/__apply', {method:'POST', headers:{'Content-Type':'application/json'},
+                       body: JSON.stringify({plan})})
+      .then(r => r.json())
+      .then(j => {
+        if(j.ok){
+          dok.textContent = '已写入磁盘，正在刷新…';
+          try{ localStorage.removeItem(PLAN_KEY); }catch(e){}
+          setTimeout(() => location.reload(), 500);
+        } else {
+          const msg = j.msg || '';
+          console.error(msg);
+          if(msg.indexOf('已中止') >= 0 && msg.indexOf('防误删') >= 0){
+            dok.textContent = '这一份 book.html 已过期，正在刷新，刷新后重试一次';
+            try{ localStorage.removeItem(PLAN_KEY); }catch(e){}
+            setTimeout(() => location.reload(), 1400);
+          } else {
+            dok.textContent = '未应用：' + msg.split('\n').filter(Boolean).pop();
+          }
+        }
+      })
+      .catch(e => { dok.textContent = '服务无响应，改用复制命令'; console.error(e); });
+    return;
+  }
+
+  const cmd = "cd '" + BASEDIR + "' && python3 gen_book.py --apply-plan \"" + plan + "\"";
+  const done = () => { dok.textContent = '已复制，去终端粘贴'; };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(cmd).then(done, () => prompt('复制这条命令：', cmd));
+  } else {
+    const t = document.createElement('textarea');
+    t.value = cmd; document.body.appendChild(t); t.select();
+    try{ document.execCommand('copy'); done(); }catch(_){ prompt('复制这条命令：', cmd); }
+    t.remove();
+  }
+});
+
+/* ── 幻灯片式复制 / 粘贴 / 删除 ── */
+let cpSel = null, cpClip = null, cpGid = 0;
+
+function cpFolder(a){ return a.dataset.src || (a.dataset.i !== undefined ? PAGES[+a.dataset.i].d : null); }
+function cpSelect(a){
+  if(cpSel) cpSel.classList.remove('sel');
+  cpSel = a || null;
+  if(cpSel) cpSel.classList.add('sel');
+}
+function cpSectionOf(a){
+  const key = a.dataset.gid ? 'g' + a.dataset.gid : a.dataset.i;
+  return document.querySelector(a.dataset.gid ? `.pg[data-gid="${a.dataset.gid}"]` : `.pg[data-i="${key}"]`);
+}
+/* 复制一页：目录里插一条 ghost，长卷里插一段同源 iframe */
+function cpFrom(el){                                   // 副本追溯到原始页号
+  return el.dataset.from !== undefined ? +el.dataset.from : +el.dataset.i;
+}
+function mkGhost(fromIdx){
+  const srcToc = items.find(x => +x.dataset.i === fromIdx);
+  const srcSec = secs.find(x => +x.dataset.i === fromIdx);
+  if(!srcToc || !srcSec) return null;
+  const gid = ++cpGid;
+  const a = srcToc.cloneNode(true);
+  a.classList.remove('on','sel','dragging','over-top','over-bot','gone');
+  a.classList.add('ghost');
+  a.removeAttribute('data-i'); a.dataset.gid = gid; a.dataset.from = fromIdx;
+  a.dataset.src = PAGES[fromIdx].d; a.href = '#g' + gid;
+
+  const sec = srcSec.cloneNode(true);
+  sec.classList.remove('hide'); sec.classList.add('ghost');
+  sec.removeAttribute('data-i'); sec.dataset.gid = gid; sec.id = 'g' + gid;
+  const fr = sec.querySelector('iframe');
+  const url = srcSec.querySelector('iframe').dataset.src;
+  fr.removeAttribute('src'); delete fr.dataset.loaded; delete fr.dataset.h; fr.dataset.src = url;
+  fr.addEventListener('load', () => { fr.dataset.loaded = '1'; fitAny(sec); }, {once:true});
+  document.getElementById('main').appendChild(sec);
+  fr.src = url;
+  return a;
+}
+function cpPaste(afterEl){
+  if(!cpClip) return;
+  const a = mkGhost(cpClip.from);
+  if(!a) return;
+  afterEl.parentNode.insertBefore(a, afterEl.nextSibling);
+  syncSections(); mark(); cpSelect(a); applyFold(); layout();
+}
+function cpRemove(a){
+  if(!a) return;
+  if(a.classList.contains('ghost')){                // 副本直接撤掉
+    const sec = cpSectionOf(a); if(sec) sec.remove();
+    const nb = a.nextElementSibling || a.previousElementSibling;
+    a.remove(); cpSelect(nb && nb.classList && nb.classList.contains('toc-i') ? nb : null);
+  } else {                                          // 正式页：标记 / 取消标记
+    a.classList.toggle('gone');
+    const sec = cpSectionOf(a); if(sec) sec.classList.toggle('gone');
+  }
+  mark();
+}
+function fitAny(sec){
+  const box = sec.querySelector('.slide'), fr = sec.querySelector('iframe');
+  const bw = box.clientWidth, bh = box.clientHeight;
+  if(!bw || !bh) return;
+  const w = +fr.style.width.replace('px','') || LOGICAL;
+  const h = +fr.style.height.replace('px','') || Math.round(w * RH / RW);
+  const sc = Math.min(bw / w, bh / h);
+  fr.style.transform = `translate(${(bw - w*sc)/2}px, ${(bh - h*sc)/2}px) scale(${sc})`;
+}
+
+side.addEventListener('click', e => {
+  const x = e.target.closest('.toc-x');
+  if(x){
+    e.preventDefault(); e.stopPropagation();
+    const a = x.closest('.toc-i'); cpSelect(a); cpRemove(a); return;
+  }
+  const a = e.target.closest('.toc-i'); if(a) cpSelect(a);
+}, true);
+
+addEventListener('keydown', e => {
+  const t = e.target.tagName;
+  if(t === 'INPUT' || t === 'TEXTAREA' || e.target.isContentEditable) return;
+  const meta = e.metaKey || e.ctrlKey;
+  if(meta && (e.key === 'c' || e.key === 'C')){
+    if(!cpSel) return;
+    e.preventDefault();
+    cpClip = {from: cpFrom(cpSel)};
+    dok.textContent = '已复制：' + cpSel.querySelector('.toc-n').textContent.trim();
+    dbar.classList.add('on');
+  } else if(meta && (e.key === 'v' || e.key === 'V')){
+    if(!cpClip || !cpSel) return;
+    e.preventDefault(); cpPaste(cpSel);
+  } else if(meta && (e.key === 'd' || e.key === 'D')){
+    if(!cpSel) return;
+    e.preventDefault();
+    cpClip = {from: cpFrom(cpSel)};
+    cpPaste(cpSel);
+  } else if((e.key === 'Backspace' || e.key === 'Delete') && cpSel){
+    e.preventDefault(); cpRemove(cpSel);
+  }
+});
+
+/* ── 目录折叠 ── */
+function toggleSide(){
+  const small = matchMedia('(max-width:820px)').matches;
+  document.body.classList.toggle(small ? 'open' : 'fold');
+  try{ localStorage.setItem('jk_fold', document.body.classList.contains('fold') ? '1' : '0'); }catch(e){}
+  setTimeout(layout, 240);
+}
+document.getElementById('burger').addEventListener('click', toggleSide);
+try{ if(localStorage.getItem('jk_fold') === '1') document.body.classList.add('fold'); }catch(e){}
+
+/* ── 章节筛选 ── */
+const chips = document.getElementById('chips');
+const chapters = Object.keys(DATA.chapters).map(Number).sort((a,b)=>a-b);
+[[0,'全部']].concat(chapters.map(c => [c, c === 9 ? '🧪 缓存区' : '第 ' + c + ' 章'])).forEach(([c, label]) => {
+  const b = document.createElement('button');
+  b.className = 'chip' + (c === 9 ? ' draft' : '') + (c === 0 ? ' on' : '');
+  b.textContent = label;
+  b.title = c === 0 ? '显示全部 44 页' : DATA.chapters[c];
+  b.addEventListener('click', () => filter(c));
+  chips.appendChild(b);
+});
+function filter(c){
+  chapter = c;
+  [...chips.children].forEach((b, i) => b.classList.toggle('on', i === (c === 0 ? 0 : chapters.indexOf(c) + 1)));
+  secs.forEach(s  => s.classList.toggle('hide', c !== 0 && +s.dataset.ch !== c));
+  items.forEach(a => a.classList.toggle('hide', c !== 0 && +a.dataset.ch !== c));
+  heads.forEach(h => h.classList.toggle('hide', c !== 0 && +h.dataset.ch !== c));
+  seen.clear();
+  const vis = visible();
+  active = -1;
+  layout();
+  if(vis.length) goto(vis[0]);
+}
+
+/* ── 进度条 / 尺寸变化 ── */
+const bar = document.getElementById('prog');
+addEventListener('scroll', () => {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  bar.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+}, {passive:true});
+
+let rt;
+addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 140); });
+addEventListener('load', () => setTimeout(layout, 60));
+setTimeout(restorePlan, 30);
+applyFold();
+setActive(0);
+</script>
+</body>
+</html>
